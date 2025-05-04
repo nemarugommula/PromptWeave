@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,6 +14,7 @@ interface EditorHeaderProps {
   name: string;
   onNameChange: (name: string) => void;
   onSave: () => void;
+  onSaveNameOnly: () => void;
   onCopy: () => void;
   onNewVersion: () => void;
   saving: boolean;
@@ -31,7 +31,8 @@ interface EditorHeaderProps {
 const EditorHeader: React.FC<EditorHeaderProps> = ({ 
   name, 
   onNameChange, 
-  onSave, 
+  onSave,
+  onSaveNameOnly,
   onCopy,
   onNewVersion,
   saving,
@@ -58,7 +59,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
           </TooltipContent>
         </Tooltip>
         
-        <HeaderTitleEditor name={name} onNameChange={onNameChange} />
+        <HeaderTitleEditor name={name} onNameChange={onNameChange} onSave={onSaveNameOnly} />
       </div>
       
       {/* Desktop Actions */}

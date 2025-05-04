@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVersionsByPromptId, savePrompt } from '@/lib/db';
 import { VersionSchema } from '@/lib/db/schema';
 import { toast } from '@/components/ui/use-toast';
@@ -35,6 +35,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
     handleSave,
     handleNewVersion,
     handleCopy,
+    handleSaveNameOnly,
   } = useEditorState(initialPrompt);
 
   const { handleFormat } = useEditorFormatting(setContent);
@@ -55,6 +56,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
   } | undefined>(undefined);
 
   const { themeMode, setThemeMode, densityMode, setDensityMode } = useLayout();
+  const queryClient = useQueryClient();
 
   // Log whenever showResponseViewer or executionResponse changes
   useEffect(() => {
@@ -122,7 +124,28 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
     if (!version.content) return;
     setContent(version.content);
     setCurrentVersionId(version.id);
-    toast({ title: 'Version Loaded', description: `Switched to version from ${new Date(version.created_at).toLocaleString()}` });
+    
+    // Update the prompt with the current version ID
+    const updatedPrompt = {
+      ...prompt,
+      content: version.content,
+      current_version_id: version.id,
+      updated_at: Date.now()
+    };
+    
+    // Save the prompt with the updated current version ID
+    savePrompt(updatedPrompt)
+      .then(() => {
+        toast({ 
+          title: 'Version Loaded', 
+          description: `Switched to version from ${new Date(version.created_at).toLocaleString()}` 
+        });
+        // Refresh the prompt data
+        queryClient.invalidateQueries({ queryKey: ['prompt', prompt.id] });
+      })
+      .catch(err => {
+        console.error('Failed to update current version:', err);
+      });
   };
 
   const handleCompareVersions = (oldV: VersionSchema, newV: VersionSchema) => {
@@ -155,6 +178,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
           name={name}
           onNameChange={setName}
           onSave={handleSave}
+          onSaveNameOnly={handleSaveNameOnly}
           onCopy={handleCopy}
           onNewVersion={handleNewVersion}
           saving={saving}

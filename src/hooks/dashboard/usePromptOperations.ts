@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 import { 
   savePrompt, 
@@ -6,7 +5,8 @@ import {
   togglePromptFavorite, 
   togglePromptArchive, 
   exportPrompts,
-  getPrompt
+  getPrompt,
+  saveVersion
 } from "@/lib/db";
 import { v4 as uuidv4 } from "@/lib/utils/uuid";
 
@@ -14,17 +14,42 @@ export const usePromptOperations = (onDataChanged: () => Promise<void>) => {
   // Handle create prompt
   const handleCreatePrompt = async (categoryId?: string) => {
     try {
+      const promptId = uuidv4();
+      const now = Date.now();
+      
+      // Generate version ID in advance so we can reference it in the prompt
+      const versionId = uuidv4();
+      
+      // Create the new prompt with reference to the default version
       const newPrompt = {
-        id: uuidv4(),
+        id: promptId,
         name: "Untitled Prompt",
         content: "Write your system prompt here...",
         category_id: categoryId,
         is_archived: false,
-        created_at: Date.now(),
-        updated_at: Date.now(),
+        current_version_id: versionId, // Set the default version ID
+        created_at: now,
+        updated_at: now,
       };
       
+      // Save the prompt
       await savePrompt(newPrompt);
+      
+      // Create and save an initial version for the prompt
+      const initialVersion = {
+        id: versionId,
+        prompt_id: promptId,
+        content: newPrompt.content,
+        created_at: now,
+        metadata: {
+          length: newPrompt.content.length,
+          words: newPrompt.content.split(/\s+/).length
+        }
+      };
+      
+      // Save the version
+      await saveVersion(initialVersion);
+      
       toast({
         title: "Prompt Created",
         description: "Your new prompt has been created successfully.",
@@ -33,7 +58,7 @@ export const usePromptOperations = (onDataChanged: () => Promise<void>) => {
       // Reload all data
       await onDataChanged();
       
-      return newPrompt.id;
+      return promptId;
     } catch (error) {
       console.error("Failed to create prompt:", error);
       toast({

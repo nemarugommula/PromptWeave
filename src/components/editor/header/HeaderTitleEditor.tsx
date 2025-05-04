@@ -1,13 +1,13 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 
 interface HeaderTitleEditorProps {
   name: string;
   onNameChange: (name: string) => void;
+  onSave?: () => void; // Add optional onSave prop
 }
 
-const HeaderTitleEditor: React.FC<HeaderTitleEditorProps> = ({ name, onNameChange }) => {
+const HeaderTitleEditor: React.FC<HeaderTitleEditorProps> = ({ name, onNameChange, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -20,6 +20,11 @@ const HeaderTitleEditor: React.FC<HeaderTitleEditorProps> = ({ name, onNameChang
 
   const handleEditComplete = () => {
     setIsEditing(false);
+    
+    // Auto-save when editing is complete
+    if (onSave) {
+      onSave();
+    }
   };
 
   return isEditing ? (

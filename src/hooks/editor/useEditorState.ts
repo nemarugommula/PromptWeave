@@ -10,7 +10,10 @@ export function useEditorState(initialPrompt: PromptSchema) {
   const [prompt, setPrompt] = useState<PromptSchema>(initialPrompt);
   const [name, setName] = useState(initialPrompt.name || "Untitled Prompt");
   const [content, setContent] = useState(initialPrompt.content || "");
-  const [currentVersionId, setCurrentVersionId] = useState<string | undefined>(undefined);
+  // Initialize currentVersionId from the prompt's current_version_id if available
+  const [currentVersionId, setCurrentVersionId] = useState<string | undefined>(
+    initialPrompt.current_version_id
+  );
   const queryClient = useQueryClient();
   
   // Calculate word count and character count
@@ -26,7 +29,9 @@ export function useEditorState(initialPrompt: PromptSchema) {
         ...prompt,
         name,
         content,
-        updated_at: Date.now()
+        updated_at: Date.now(),
+        // Store the current version ID in the prompt object
+        current_version_id: currentVersionId
       };
       
       // Save the prompt
@@ -119,6 +124,40 @@ export function useEditorState(initialPrompt: PromptSchema) {
     }
   });
 
+  // New mutation for saving just the name without creating a version
+  const { mutate: saveNameOnly, isPending: savingName } = useMutation({
+    mutationFn: async () => {
+      console.log("Saving name only for prompt:", prompt.id);
+      
+      const updatedPrompt = {
+        ...prompt,
+        name,
+        updated_at: Date.now()
+      };
+      
+      // Save the prompt without creating a new version
+      await savePrompt(updatedPrompt);
+      
+      return updatedPrompt;
+    },
+    onSuccess: (savedPrompt) => {
+      setPrompt(savedPrompt);
+      toast({
+        title: "Name Updated",
+        description: "Your prompt name has been updated."
+      });
+      queryClient.invalidateQueries({ queryKey: ['prompt', prompt.id] });
+    },
+    onError: (error) => {
+      console.error("Failed to update prompt name:", error);
+      toast({
+        title: "Error",
+        description: "Could not update the prompt name.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleSave = useCallback(() => {
     savePromptData();
   }, [savePromptData]);
@@ -126,6 +165,14 @@ export function useEditorState(initialPrompt: PromptSchema) {
   const handleNewVersion = useCallback(() => {
     createNewVersionData();
   }, [createNewVersionData]);
+
+  const handleNameChange = useCallback((newName: string) => {
+    setName(newName);
+  }, []);
+
+  const handleSaveNameOnly = useCallback(() => {
+    saveNameOnly();
+  }, [saveNameOnly]);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(content);
@@ -163,10 +210,12 @@ export function useEditorState(initialPrompt: PromptSchema) {
     setCurrentVersionId,
     wordCount,
     charCount,
-    saving: saving || creatingVersion,
+    saving: saving || creatingVersion || savingName,
     handleSave,
     handleNewVersion,
     handleCopy,
-    createNewPrompt
+    createNewPrompt,
+    handleNameChange,
+    handleSaveNameOnly
   };
 }
