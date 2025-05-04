@@ -45,7 +45,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
   onModelChange
 }) => {
   return (
-    <div className="editor-header sticky top-0 z-50 h-14 flex items-center px-4 shadow-sm dark:shadow-dark-elevation bg-background/95 backdrop-blur-sm">
+    <div className="editor-header sticky top-0 z-50 flex items-center px-4 shadow-sm dark:shadow-dark-elevation bg-background/95 backdrop-blur-sm">
       <div className="flex items-center gap-3">
         <Tooltip>
           <TooltipTrigger asChild>
