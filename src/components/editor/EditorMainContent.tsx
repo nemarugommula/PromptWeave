@@ -1,8 +1,8 @@
-
 import React from 'react';
 import MarkdownEditor from './MarkdownEditor';
 import DiffViewer from './DiffViewer';
 import { VersionSchema } from '@/lib/db/schema';
+import { EditorView } from '@codemirror/view';
 
 interface EditorMainContentProps {
   content: string;
@@ -10,6 +10,7 @@ interface EditorMainContentProps {
   showDiff: boolean;
   diffVersions: { old: VersionSchema, new: VersionSchema } | null;
   onCloseDiff: () => void;
+  editorRef?: React.MutableRefObject<EditorView | null>;
 }
 
 const EditorMainContent: React.FC<EditorMainContentProps> = ({
@@ -18,6 +19,7 @@ const EditorMainContent: React.FC<EditorMainContentProps> = ({
   showDiff,
   diffVersions,
   onCloseDiff,
+  editorRef
 }) => {
   return (
     <div className="flex-1 h-full overflow-hidden" style={{ minHeight: 0 }}>
@@ -37,6 +39,7 @@ const EditorMainContent: React.FC<EditorMainContentProps> = ({
             onChange={onChange}
             className="flex-1 w-full h-full"
             autofocus={true}
+            editorRef={editorRef}
           />
         </div>
       )}

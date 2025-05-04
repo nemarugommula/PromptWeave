@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVersionsByPromptId, savePrompt } from '@/lib/db';
 import { VersionSchema } from '@/lib/db/schema';
@@ -15,6 +15,7 @@ import { callLLM } from '@/lib/llm-client';
 import { v4 as uuidv4 } from '@/lib/utils/uuid';
 import PromptExecutionModal from './PromptExecutionModal';
 import ResponseViewer from './ResponseViewer';
+import { EditorView as CodeMirrorEditorView } from '@codemirror/view';
 
 interface EditorViewProps {
   prompt: any;
@@ -57,6 +58,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
 
   const { themeMode, setThemeMode, densityMode, setDensityMode } = useLayout();
   const queryClient = useQueryClient();
+  const editorRef = useRef<CodeMirrorEditorView | null>(null);
 
   // Log whenever showResponseViewer or executionResponse changes
   useEffect(() => {
@@ -208,6 +210,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
             showDiff={showDiff}
             diffVersions={diffVersions}
             onCloseDiff={() => { setShowDiff(false); setDiffVersions(null); }}
+            editorRef={editorRef}
           />
 
           {showResponseViewer && executionResponse && (
@@ -232,8 +235,11 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
           onToggleVersions={() => setShowVersions(prev => !prev)}
           showVersions={showVersions}
           onNavigate={pos => {
-            // TODO: scroll to position in editor
-            console.log('Navigate to position:', pos);
+            if (editorRef.current) {
+              editorRef.current.dispatch({
+                effects: CodeMirrorEditorView.scrollIntoView(pos, { y: 'center' })
+              });
+            }
           }}
         >
           {versions.length > 0 && (

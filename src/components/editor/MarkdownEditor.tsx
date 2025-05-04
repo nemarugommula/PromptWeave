@@ -1,7 +1,7 @@
-
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useCodeMirror } from '@/hooks/editor/useCodeMirror';
 import { useLayout } from '@/contexts/LayoutContext';
+import { EditorView } from '@codemirror/view';
 
 interface MarkdownEditorProps {
   value: string;
@@ -10,6 +10,7 @@ interface MarkdownEditorProps {
   readOnly?: boolean;
   placeholder?: string;
   autofocus?: boolean;
+  editorRef?: React.MutableRefObject<EditorView | null>;
 }
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -18,14 +19,15 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   className = '',
   readOnly = false,
   placeholder = '',
-  autofocus = true
+  autofocus = true,
+  editorRef
 }) => {
   const { themeMode } = useLayout();
   const isDarkMode = themeMode === 'dark';
   const editorContainerRef = useRef<HTMLDivElement>(null);
   
   // Use our improved CodeMirror hook
-  const { isReady } = useCodeMirror({
+  const { isReady, editor } = useCodeMirror({
     initialValue: value,
     onChange,
     placeholder,
@@ -34,6 +36,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     autofocus,
     editorWrapperRef: editorContainerRef
   });
+
+  // Keep the external editorRef updated with the latest editor instance
+  useEffect(() => {
+    if (editorRef && editor) {
+      editorRef.current = editor;
+    }
+  }, [editor, editorRef]);
 
   return (
     <div 
