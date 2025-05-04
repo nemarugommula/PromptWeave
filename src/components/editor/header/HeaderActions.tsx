@@ -47,6 +47,35 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
   return (
     <div className="ml-auto flex items-center gap-2">
       <div className="hidden sm:flex items-center gap-2">
+        <HeaderButton
+          icon={<Copy className="h-4 w-4" />}
+          label="Copy to Clipboard"
+          onClick={onCopy}
+        />
+        
+        <Button 
+          onClick={onSave} 
+          disabled={saving} 
+          size="sm" 
+          variant="outline"
+          className="gap-1"
+        >
+          <Save className="h-4 w-4" />
+          {saving ? "Saving..." : "Save"}
+        </Button>
+        
+        <HeaderButton
+          icon={<Diff className="h-4 w-4" />}
+          label="Save New Version"
+          onClick={onNewVersion}
+        />
+
+        <HeaderButton
+          icon={themeMode === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          label={themeMode === 'light' ? 'Dark Mode' : 'Light Mode'}
+          onClick={toggleTheme}
+        />
+
         {/* Role Selector */}
         <Select value={selectedRole} onValueChange={onRoleChange}>
           <SelectTrigger className="h-9 w-[110px]">
@@ -74,24 +103,6 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
             ))}
           </SelectContent>
         </Select>
-
-        <HeaderButton
-          icon={<Copy className="h-4 w-4" />}
-          label="Copy to Clipboard"
-          onClick={onCopy}
-        />
-        
-        <HeaderButton
-          icon={<Diff className="h-4 w-4" />}
-          label="Save New Version"
-          onClick={onNewVersion}
-        />
-
-        <HeaderButton
-          icon={themeMode === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-          label={themeMode === 'light' ? 'Dark Mode' : 'Light Mode'}
-          onClick={toggleTheme}
-        />
       </div>
       
       <Button 
@@ -103,17 +114,6 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
       >
         <Play className="h-4 w-4" />
         {executing ? "Executing..." : "Execute"}
-      </Button>
-      
-      <Button 
-        onClick={onSave} 
-        disabled={saving} 
-        size="sm" 
-        variant="outline"
-        className="gap-1 hidden md:flex"
-      >
-        <Save className="h-4 w-4" />
-        {saving ? "Saving..." : "Save"}
       </Button>
     </div>
   );
