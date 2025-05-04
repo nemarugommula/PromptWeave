@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { savePrompt, saveVersion } from '@/lib/db';
@@ -68,10 +67,65 @@ export function useEditorState(initialPrompt: PromptSchema) {
       });
     }
   });
+  
+  // Handle creating a new version without changing the current version
+  const { mutate: createNewVersionData, isPending: creatingVersion } = useMutation({
+    mutationFn: async () => {
+      console.log("Creating new version for prompt:", prompt.id);
+      
+      // Save the prompt first to ensure content is up to date
+      const updatedPrompt = {
+        ...prompt,
+        name,
+        content,
+        updated_at: Date.now()
+      };
+      
+      await savePrompt(updatedPrompt);
+      
+      // Save a new version without setting it as current
+      const newVersion = {
+        id: uuidv4(),
+        prompt_id: prompt.id,
+        content: content,
+        created_at: Date.now(),
+        metadata: {
+          length: content.length,
+          words: content.split(/\s+/).length
+        }
+      };
+      
+      await saveVersion(newVersion);
+      // Don't set as current version: setCurrentVersionId(newVersion.id);
+      
+      return updatedPrompt;
+    },
+    onSuccess: (savedPrompt) => {
+      setPrompt(savedPrompt);
+      toast({
+        title: "New Version Created",
+        description: "A new version of this prompt has been saved."
+      });
+      queryClient.invalidateQueries({ queryKey: ['prompt', prompt.id] });
+      queryClient.invalidateQueries({ queryKey: ['versions', prompt.id] });
+    },
+    onError: (error) => {
+      console.error("Failed to create new version:", error);
+      toast({
+        title: "Error",
+        description: "Could not create a new version.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const handleSave = useCallback(() => {
     savePromptData();
   }, [savePromptData]);
+  
+  const handleNewVersion = useCallback(() => {
+    createNewVersionData();
+  }, [createNewVersionData]);
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(content);
@@ -109,8 +163,9 @@ export function useEditorState(initialPrompt: PromptSchema) {
     setCurrentVersionId,
     wordCount,
     charCount,
-    saving,
+    saving: saving || creatingVersion,
     handleSave,
+    handleNewVersion,
     handleCopy,
     createNewPrompt
   };

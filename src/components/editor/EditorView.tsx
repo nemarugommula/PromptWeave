@@ -33,6 +33,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
     charCount,
     saving,
     handleSave,
+    handleNewVersion,
     handleCopy,
   } = useEditorState(initialPrompt);
 
@@ -155,7 +156,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
           onNameChange={setName}
           onSave={handleSave}
           onCopy={handleCopy}
-          onNewVersion={handleSave}
+          onNewVersion={handleNewVersion}
           saving={saving}
           toggleTheme={toggleTheme}
           themeMode={themeMode}
