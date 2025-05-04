@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ChevronLeft,
   ChevronRight, 
-  Save,
   History,
   ChevronDown,
   ChevronUp,
@@ -55,6 +54,18 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
     setCollapsed(next);
     localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(next));
   };
+  
+  // Handler for toggling versions that also uncollapses the sidebar
+  const handleToggleVersions = () => {
+    // If sidebar is collapsed, uncollapse it
+    if (collapsed) {
+      setCollapsed(false);
+      localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(false));
+    }
+    
+    // Call the original onToggleVersions function
+    onToggleVersions();
+  };
 
   // Compute lineCount and tokenCount
   const lineCount = useMemo(() => content.split(/\r?\n/).length, [content]);
@@ -95,30 +106,20 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
 
   return (
     <aside className="flex flex-col bg-background border-l transition-width duration-300" style={{ width: collapsed ? 32 : 256 }}>
-      <div className="flex items-center justify-between p-2 border-b">
-        {!collapsed && <h3 className="text-sm font-semibold">Utilities</h3>}
+      <div className="flex items-center justify-between border-b">
+        {!collapsed && <h3 className="text-sm p-2 font-semibold">Outline</h3>}
         <button onClick={toggleCollapsed} className="p-1" title={collapsed ? 'Expand' : 'Collapse'}>
           {collapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
       </div>
       
-      {/* Top actions bar (always visible) */}
+      {/* Top bar (collapsed view only shows version toggle) */}
       <div className="border-b p-2 flex items-center justify-center">
         {collapsed ? (
           <div className="flex flex-col gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onSave} disabled={saving}>
-                  <Save className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                {saving ? "Saving..." : "Save Changes"}
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleVersions}>
+                <Button variant="ghost" size="icon" className="h-4 w-4" onClick={handleToggleVersions}>
                   <History className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -130,26 +131,21 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
         ) : (
           <div className="w-full flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">Actions</span>
-              <div className="text-xs text-muted-foreground">
-                {wordCount} words | {charCount} chars
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={onSave} disabled={saving} size="sm" className="gap-1 flex-1">
-                <Save className="h-4 w-4" />
-                {saving ? "Saving..." : "Save"}
-              </Button>
+              <span className="text-xs font-medium">Version History</span>
               <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onToggleVersions}
-                className="gap-1"
+                variant="ghost" 
+                size="icon" 
+                onClick={handleToggleVersions}
+                className="h-6 w-6"
               >
-                <History className="h-4 w-4" />
                 {showVersions ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </Button>
             </div>
+            {showVersions && (
+              <div className="max-h-40 overflow-y-auto border rounded p-1 mt-2">
+                {children}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -188,7 +184,7 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
             </div>
           )}
           <div>
-            <div className="font-medium mb-1">Document Stats</div>
+            <div className="font-medium mb-1">Prompt stats</div>
             <div className="grid grid-cols-2 gap-2">
               <div>Words<span className="float-right font-mono">{wordCount}</span></div>
               <div>Chars<span className="float-right font-mono">{charCount}</span></div>
@@ -196,8 +192,8 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
               <div>Tokens<span className="float-right font-mono">{tokenCount}</span></div>
             </div>
           </div>
-          <div>
-            <div className="font-medium mb-1">Prompt Outline</div>
+          <div className='border-b border-t py-2'>
+            <div className="font-medium mb-1">Document outline</div>
             <ul className="space-y-1">
               {outline.map((item, idx) => (
                 <li key={idx} className="cursor-pointer hover:text-primary"
@@ -208,7 +204,7 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
               ))}
             </ul>
           </div>
-          <div>
+          <div className='border-b pb-2'>
             <div className="font-medium mb-1">Section Stats</div>
             <ul className="space-y-1">
               {sections.map((sec, idx) => (
@@ -225,22 +221,6 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
               {lastSavedTime ? new Date(lastSavedTime).toLocaleString() : 'N/A'}
             </div>
           </div>
-          {children && (
-            <div>
-              <div className="font-medium mb-1 flex items-center justify-between">
-                <span>Version History</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 p-0 text-xs"
-                  onClick={onToggleVersions}
-                >
-                  {showVersions ? "Hide" : "Show"}
-                </Button>
-              </div>
-              {showVersions && children}
-            </div>
-          )}
           <div>
             <div className="font-medium mb-1">Suggestions (Phase 2)</div>
             <div className="text-muted-foreground text-xxs">Coming soon...</div>

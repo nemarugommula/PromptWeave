@@ -1,17 +1,18 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { 
   Clock, 
   Check, 
   ChevronRight, 
-  ArrowLeftRight 
+  ArrowLeftRight,
+  CircleDot
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { VersionSchema } from '@/lib/db/schema';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface VersionListProps {
   versions: VersionSchema[];
@@ -37,7 +38,8 @@ export const VersionList: React.FC<VersionListProps> = ({
     onSelectVersion(version);
   };
 
-  const toggleVersionSelection = (versionId: string) => {
+  const toggleVersionSelection = (versionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (selectedVersions.includes(versionId)) {
       setSelectedVersions(selectedVersions.filter(id => id !== versionId));
     } else {
@@ -62,95 +64,119 @@ export const VersionList: React.FC<VersionListProps> = ({
     }
   };
 
+  // Calculate token count - approximation based on character count (4 chars per token)
+  const getTokenCount = (content: string) => {
+    return Math.max(1, Math.round(content.length / 4));
+  };
+
   if (!versions || versions.length === 0) {
     return (
-      <div className={cn("p-4 text-center text-muted-foreground", className)}>
-        No previous versions available
+      <div className={cn("p-1 text-center text-muted-foreground text-xs", className)}>
+        No versions
       </div>
     );
   }
 
+  const formatTimeAgo = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    
+    // Less than 1 minute
+    if (diff < 60000) return 'just now';
+    
+    // Less than 1 hour
+    if (diff < 3600000) {
+      const mins = Math.floor(diff / 60000);
+      return `${mins}m ago`;
+    }
+    
+    // Less than 24 hours
+    if (diff < 86400000) {
+      const hours = Math.floor(diff / 3600000);
+      return `${hours}h ago`;
+    }
+    
+    // Less than 7 days
+    if (diff < 604800000) {
+      const days = Math.floor(diff / 86400000);
+      return `${days}d ago`;
+    }
+    
+    // Format as date
+    return format(new Date(timestamp), 'MM/dd/yy');
+  };
+
   return (
-    <div className={cn("flex flex-col h-full", className)}>
-      <div className="p-2 border-b">
-        <h3 className="text-sm font-medium">Version History</h3>
-        {selectedVersions.length === 2 && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full mt-2 text-xs gap-1"
-            onClick={handleCompare}
-          >
-            <ArrowLeftRight className="h-3 w-3" />
-            Compare Selected Versions
-          </Button>
-        )}
-      </div>
+    <div className={cn("flex flex-col", className)}>
+      {selectedVersions.length === 2 && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full py-1 text-xs gap-1 h-auto hover:bg-accent"
+          onClick={handleCompare}
+        >
+          <ArrowLeftRight className="h-3 w-3" />
+          Compare
+        </Button>
+      )}
       
-      <ScrollArea className="flex-1">
-        <div className="space-y-1 p-2">
+      <ScrollArea className="w-full">
+        <ul className="space-y-0.5 text-xs pt-1">
           {sortedVersions.map((version) => {
             const isCurrentVersion = version.id === currentVersionId;
             const isSelected = selectedVersions.includes(version.id);
-            const wordCount = version.metadata?.words || 0;
-            const date = new Date(version.created_at);
+            const tokenCount = version.metadata?.tokens || getTokenCount(version.content);
+            const timeAgo = formatTimeAgo(version.created_at);
+            const previewText = version.content.trim().split('\n')[0] || '';
             
             return (
-              <div 
+              <li 
                 key={version.id}
                 className={cn(
-                  "rounded-md p-2 cursor-pointer flex items-center gap-2",
+                  "py-1 px-1.5 cursor-pointer flex items-center gap-1.5 rounded",
                   isCurrentVersion ? "bg-accent" : "hover:bg-accent/50",
-                  isSelected && "border border-primary"
+                  isSelected && "border-l-2 border-primary pl-1"
                 )}
                 onClick={() => handleVersionSelect(version)}
               >
-                <div className="flex-shrink-0">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </div>
+                {isCurrentVersion ? (
+                  <CircleDot className="h-2.5 w-2.5 text-primary flex-shrink-0" />
+                ) : (
+                  <div 
+                    className={cn(
+                      "h-2.5 w-2.5 rounded-full border flex-shrink-0", 
+                      isSelected ? "bg-primary border-primary" : "border-muted"
+                    )}
+                    onClick={(e) => toggleVersionSelection(version.id, e)}
+                  />
+                )}
                 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">
-                      {format(date, 'MMM d, yyyy h:mm a')}
+                <div className="flex-1 min-w-0 flex flex-col">
+                  <div className="flex items-start justify-between w-full gap-1">
+                    <span className="font-medium truncate max-w-[70%]" title={previewText}>
+                      {previewText.substring(0, 25)}
+                      {previewText.length > 25 ? "..." : ""}
                     </span>
-                    <Badge variant="outline" className="text-xs">
-                      {wordCount} words
-                    </Badge>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {timeAgo}
+                    </span>
                   </div>
                   
-                  <div className="text-xs text-muted-foreground truncate mt-1">
-                    {version.content.substring(0, 50)}
-                    {version.content.length > 50 ? "..." : ""}
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>{tokenCount} tokens</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        {format(new Date(version.created_at), 'MMM d, yyyy h:mm a')}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-1">
-                  {isCurrentVersion && (
-                    <Check className="h-4 w-4 text-primary" />
-                  )}
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 rounded-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleVersionSelection(version.id);
-                    }}
-                  >
-                    <div className={cn(
-                      "h-4 w-4 rounded-full border",
-                      isSelected ? "bg-primary border-primary" : "bg-transparent"
-                    )} />
-                  </Button>
-                  
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </ScrollArea>
     </div>
   );
