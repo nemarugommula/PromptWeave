@@ -524,72 +524,74 @@ const TemplatesConfig: React.FC = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-12">Icon</TableHead>
-                            <TableHead>Label</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Shortcut</TableHead>
-                            <TableHead>Template</TableHead>
-                            <TableHead className="w-28">Order</TableHead>
-                            <TableHead className="text-right w-28">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {formatters.map((formatter, index) => (
-                            <TableRow key={formatter.id}>
-                              <TableCell>{getIconForType(formatter.type)}</TableCell>
-                              <TableCell className="font-medium">{formatter.label}</TableCell>
-                              <TableCell>{formatter.type}</TableCell>
-                              <TableCell>{formatter.shortcut || '—'}</TableCell>
-                              <TableCell className="font-mono text-xs">
-                                {formatter.template.length > 20 
-                                  ? `${formatter.template.substring(0, 20)}...` 
-                                  : formatter.template}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center justify-center gap-1">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => moveFormatter(formatter.id, 'up')}
-                                    disabled={index === 0}
-                                  >
-                                    <ChevronUp className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={() => moveFormatter(formatter.id, 'down')}
-                                    disabled={index === formatters.length - 1}
-                                  >
-                                    <ChevronDown className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => openFormatterEditDialog(formatter)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => deleteFormatter(formatter.id)}
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        <Table>
+                          <TableHeader className="sticky top-0 bg-background z-10">
+                            <TableRow>
+                              <TableHead className="w-12">Icon</TableHead>
+                              <TableHead>Label</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Shortcut</TableHead>
+                              <TableHead>Template</TableHead>
+                              <TableHead className="w-28">Order</TableHead>
+                              <TableHead className="text-right w-28">Actions</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {formatters.map((formatter, index) => (
+                              <TableRow key={formatter.id}>
+                                <TableCell>{getIconForType(formatter.type)}</TableCell>
+                                <TableCell className="font-medium">{formatter.label}</TableCell>
+                                <TableCell>{formatter.type}</TableCell>
+                                <TableCell>{formatter.shortcut || '—'}</TableCell>
+                                <TableCell className="font-mono text-xs">
+                                  {formatter.template.length > 20 
+                                    ? `${formatter.template.substring(0, 20)}...` 
+                                    : formatter.template}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center justify-center gap-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => moveFormatter(formatter.id, 'up')}
+                                      disabled={index === 0}
+                                    >
+                                      <ChevronUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => moveFormatter(formatter.id, 'down')}
+                                      disabled={index === formatters.length - 1}
+                                    >
+                                      <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => openFormatterEditDialog(formatter)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteFormatter(formatter.id)}
+                                    >
+                                      <Trash className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -603,64 +605,66 @@ const TemplatesConfig: React.FC = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Category</TableHead>
-                            <TableHead>Title</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Preview</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {snippets.map((snippet) => (
-                            <TableRow key={snippet.id}>
-                              <TableCell>{snippet.category}</TableCell>
-                              <TableCell className="font-medium">{snippet.title}</TableCell>
-                              <TableCell>{snippet.description || '—'}</TableCell>
-                              <TableCell>
-                                <span className="font-mono text-xs">
-                                  {snippet.content.length > 40
-                                    ? `${snippet.content.substring(0, 40).replace(/\n/g, '⏎')}...`
-                                    : snippet.content.replace(/\n/g, '⏎')}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(snippet.content);
-                                      toast({
-                                        title: 'Copied',
-                                        description: 'Snippet content copied to clipboard.',
-                                      });
-                                    }}
-                                  >
-                                    <Copy className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => openSnippetEditDialog(snippet)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => deleteSnippet(snippet.id)}
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        <Table>
+                          <TableHeader className="sticky top-0 bg-background z-10">
+                            <TableRow>
+                              <TableHead>Category</TableHead>
+                              <TableHead>Title</TableHead>
+                              <TableHead>Description</TableHead>
+                              <TableHead>Preview</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {snippets.map((snippet) => (
+                              <TableRow key={snippet.id}>
+                                <TableCell>{snippet.category}</TableCell>
+                                <TableCell className="font-medium">{snippet.title}</TableCell>
+                                <TableCell>{snippet.description || '—'}</TableCell>
+                                <TableCell>
+                                  <span className="font-mono text-xs">
+                                    {snippet.content.length > 40
+                                      ? `${snippet.content.substring(0, 40).replace(/\n/g, '⏎')}...`
+                                      : snippet.content.replace(/\n/g, '⏎')}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(snippet.content);
+                                        toast({
+                                          title: 'Copied',
+                                          description: 'Snippet content copied to clipboard.',
+                                        });
+                                      }}
+                                    >
+                                      <Copy className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => openSnippetEditDialog(snippet)}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteSnippet(snippet.id)}
+                                    >
+                                      <Trash className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>

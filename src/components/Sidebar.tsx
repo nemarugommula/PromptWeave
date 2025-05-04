@@ -96,35 +96,35 @@ export function Sidebar() {
               <TooltipContent side="right">Templates</TooltipContent>
             </Tooltip>
           </div>
-          
-          {/* Settings item */}
-          <div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div 
-                  className={cn(
-                    "flex items-center justify-center rounded-md transition-colors",
-                    activeItem === 'settings' && "bg-accent text-accent-foreground"
-                  )}
-                >
-                  <SettingsDrawer />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right">Settings</TooltipContent>
-            </Tooltip>
-          </div>
         </div>
       </ScrollArea>
       
       <div className="p-4 mt-auto w-full flex flex-col items-center">
-        <Separator className="w-full mb-4" />
+        {/* Version indicator */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="text-xs text-muted-foreground text-center w-full flex justify-center">
+            <div className="text-xs text-muted-foreground text-center w-full flex justify-center mb-4">
               v1
             </div>
           </TooltipTrigger>
           <TooltipContent side="right">PromptWeave v1.0</TooltipContent>
+        </Tooltip>
+        
+        <Separator className="w-full mb-4" />
+        
+        {/* Settings at the very bottom */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div 
+              className={cn(
+                "flex items-center justify-center rounded-md transition-colors",
+                activeItem === 'settings' && "bg-accent text-accent-foreground"
+              )}
+            >
+              <SettingsDrawer />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right">Settings</TooltipContent>
         </Tooltip>
       </div>
     </div>
