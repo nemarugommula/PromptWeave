@@ -13,8 +13,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 250 47% 60%;
+    --primary-foreground: 0 0% 98%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -30,63 +30,81 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 250 47% 60%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    --sidebar-primary: 250 47% 60%;
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    --editor-background: 0 0% 100%;
+    --editor-foreground: 222.2 84% 4.9%;
+    --editor-border: 214.3 31.8% 91.4%;
+    --editor-line: 210 40% 96.1%;
+    --editor-gutter: 210 40% 98%;
+    --editor-selection: 210 40% 90%;
+    --editor-active-line: 210 40% 98%;
+
+    /* Spacing variables for density modes */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 240 10% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 240 10% 12%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 240 10% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 250 47% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 240 8% 20%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 8% 16%;
+    --muted-foreground: 215 20.2% 75.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 240 8% 16%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
+    --border: 240 8% 18%;
+    --input: 240 8% 18%;
+    --ring: 250 47% 60%;
+
+    --sidebar-background: 240 10% 12%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 250 47% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent: 240 8% 16%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 240 8% 16%;
+    --sidebar-ring: 250 47% 60%;
+    
+    --editor-background: 240 10% 10%;
+    --editor-foreground: 210 40% 98%;
+    --editor-border: 240 8% 18%;
+    --editor-line: 240 8% 15%;
+    --editor-gutter: 240 8% 14%;
+    --editor-selection: 250 47% 30%;
+    --editor-active-line: 240 8% 14%;
   }
 }
 
@@ -98,4 +116,250 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Compact mode styles */
+  .compact-mode {
+    /* Reduced spacing - more aggressive density */
+    --space-1: 0.1rem;    /* Reduced from 0.125rem */
+    --space-2: 0.2rem;    /* Reduced from 0.25rem */
+    --space-3: 0.35rem;   /* Reduced from 0.5rem */
+    --space-4: 0.5rem;    /* Reduced from 0.75rem */
+    --space-5: 0.75rem;   /* Reduced from 1rem */
+    --space-6: 1rem;      /* Reduced from 1.25rem */
+    
+    /* Reduced font sizes for compact mode */
+    font-size: 0.9375rem; /* Slightly smaller base font */
+  }
+  
+  .compact-mode .card {
+    @apply p-2; /* Reduced from p-3 */
+    margin-bottom: 0.35rem; /* Reduced bottom margin */
+  }
+  
+  .compact-mode .prompt-card {
+    @apply text-xs; /* Reduced from text-sm */
+  }
+  
+  /* Reduced padding and margins for all elements in compact mode */
+  .compact-mode h1, 
+  .compact-mode h2, 
+  .compact-mode h3, 
+  .compact-mode h4 {
+    @apply mb-1;
+    line-height: 1.2;
+  }
+  
+  .compact-mode p, 
+  .compact-mode ul, 
+  .compact-mode ol {
+    @apply my-1;
+    line-height: 1.3;
+  }
+  
+  .compact-mode section, 
+  .compact-mode article, 
+  .compact-mode aside {
+    @apply gap-1 p-2;
+  }
+  
+  .compact-mode .flex {
+    @apply gap-1;
+  }
+  
+  .compact-mode .grid {
+    @apply gap-1;
+  }
+  
+  /* Editor-specific compact mode styles */
+  .editor-compact-mode .editor-header {
+    @apply py-0.5; /* Reduced from py-1 */
+    min-height: 2rem; /* Enforced minimum height */
+  }
+  
+  .editor-compact-mode .cm-line {
+    @apply py-0 px-2; /* Reduced from py-0.5 px-3 */
+    line-height: 1.3; /* Reduced line height */
+  }
+  
+  .editor-compact-mode .editor-toolbar {
+    @apply py-0 px-1 gap-0.5; /* Reduced from py-0.5 px-1.5 gap-1 */
+    min-height: 1.75rem; /* Compact toolbar height */
+  }
+  
+  .editor-compact-mode .editor-sidebar-section {
+    @apply py-1; /* Reduced from py-2 */
+  }
+  
+  .editor-compact-mode button {
+    @apply py-0.5 px-1.5 text-xs; /* Reduced from py-1 px-2 text-sm */
+    min-height: 1.5rem; /* Ensures clickable area */
+  }
+  
+  .editor-compact-mode input,
+  .editor-compact-mode select,
+  .editor-compact-mode textarea {
+    @apply py-0.5 px-1.5 text-xs; /* Reduced from py-1 px-2 text-sm */
+    min-height: 1.5rem; /* Ensures usable input height */
+  }
+  
+  /* Reduce spacing in dropdown menus */
+  .compact-mode .dropdown-content {
+    @apply py-0.5 px-1;
+  }
+  
+  .compact-mode .dropdown-item {
+    @apply py-0.5 px-1 text-xs;
+  }
+  
+  /* More compact icons */
+  .compact-mode svg:not(.preserve-size) {
+    @apply h-3.5 w-3.5; /* Smaller icons */
+  }
+  
+  /* Animations for layout transitions */
+  .layout-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
+
+@layer components {
+  /* Enhanced layout selector button */
+  .layout-selector-btn {
+    @apply flex items-center justify-center p-2 rounded-md border border-muted/40 hover:bg-secondary transition-colors dark:hover:bg-muted;
+  }
+  
+  .layout-selector-btn[data-active="true"] {
+    @apply bg-primary text-primary-foreground;
+  }
+  
+  .theme-toggle-btn {
+    @apply p-2 rounded-full hover:bg-secondary transition-colors;
+  }
+  
+  /* Brand gradient text */
+  .brand-gradient {
+    @apply bg-gradient-to-r from-primary via-purple-500 to-indigo-400 text-transparent bg-clip-text;
+  }
+  
+  /* View toggle styles */
+  .view-toggle-btn {
+    @apply flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded hover:bg-secondary transition-colors;
+  }
+  
+  .view-toggle-btn[data-active="true"] {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  /* Editor glass styles */
+  .editor-glass {
+    @apply bg-background/80 dark:bg-card/80 backdrop-blur-lg border border-border dark:border-border/40 shadow-glass;
+  }
+
+  /* Editor toolbar */
+  .editor-toolbar {
+    @apply px-2 py-1 flex items-center gap-1 bg-background/90 dark:bg-muted/90 backdrop-blur-md rounded-md shadow-toolbar border border-border/50;
+  }
+
+  /* Editor item hover effect */
+  .editor-item-hover {
+    @apply hover:bg-secondary/60 dark:hover:bg-muted/60 transition-colors rounded-md;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  .glass-morphism {
+    @apply backdrop-blur-md bg-background/80 dark:bg-card/80 border border-border/50 dark:border-border/40;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+}
+
+/* Enhanced styles for editor components */
+.editor-header {
+  @apply border-b bg-background/90 dark:bg-card/90 backdrop-blur-md;
+}
+
+/* Enhanced markdown editor styles */
+.cm-editor {
+  @apply h-full w-full outline-none;
+}
+
+.cm-content {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.cm-line {
+  @apply py-1 px-4;
+}
+
+.cm-gutters {
+  @apply bg-transparent dark:bg-editor-gutter/50 border-r border-editor-border;
+}
+
+.cm-gutter {
+  @apply px-2 text-muted-foreground/70;
+}
+
+.cm-activeLineGutter {
+  @apply bg-editor-gutter text-foreground;
+}
+
+/* Using CSS variables for active line color to support dynamic theme changes */
+.cm-activeLine {
+  background-color: var(--editor-active-line-background);
+}
+
+/* Set theme for our editor */
+.cm-focused .cm-line:hover {
+  @apply bg-editor-line/50;
+}
+
+.cm-selectionBackground {
+  @apply bg-editor-selection !important;
+}
+
+.cm-cursor {
+  @apply border-l-2 border-primary;
+}
+
+/* Presentation mode styles */
+.presentation-mode {
+  font-size: 1.2rem;
+  line-height: 1.8;
+}
+
+.presentation-mode .cm-editor .cm-content {
+  padding: 2rem;
+}
+
+.presentation-mode .cm-editor {
+  font-size: 1.2rem;
+  line-height: 1.8;
+}
+
+/* Diff viewer styles */
+.diff-add {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.diff-remove {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
 }

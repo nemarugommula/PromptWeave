@@ -1,42 +1,138 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+
+/* ... keep existing code */
+
+/* Response viewer styles */
+.response-viewer {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.dark .response-viewer {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.response-content {
+  font-family: 'Georgia', serif;
+  line-height: 1.6;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.token-usage {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
 }
 
-.card {
-  padding: 2em;
+.prompt-role-selector {
+  min-width: 120px;
 }
 
-.read-the-docs {
-  color: #888;
+.prompt-model-selector {
+  min-width: 160px;
 }
+
+/* Fix sidebar overlap with header */
+.editor-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--background);
+}
+
+.sidebar-container {
+  margin-top: 0;
+  z-index: 30;
+}
+
+/* Enhanced styling for minimized sidebar */
+.sidebar-minimized .stats-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-header-aligned {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.response-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* CodeMirror Enhanced Styles */
+.cm-editor {
+  height: 100% !important;
+  width: 100% !important;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.cm-editor .cm-content {
+  padding: 1rem;
+  line-height: 1.6;
+}
+
+.cm-editor .cm-gutters {
+  background-color: transparent;
+  border-right: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.cm-editor .cm-activeLine {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .cm-editor .cm-activeLine {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.cm-editor .cm-activeLineGutter {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .cm-editor .cm-activeLineGutter {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.cm-editor .cm-cursor {
+  border-left-color: var(--primary);
+  border-left-width: 2px !important;
+}
+
+/* Proper z-index layering for UI components */
+.editor-view {
+  position: relative;
+}
+
+.editor-header {
+  z-index: 50 !important;
+}
+
+.CollapsibleSidebar {
+  z-index: 40 !important;
+  position: relative;
+}
+
+.editor-content,
+.markdown-editor-container {
+  position: relative;
+  z-index: 20 !important;
+}
+
+/* Make sure editor is visible and has proper height */
+.editor-container {
+  min-height: 200px !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: relative;
+  z-index: 10;
+  background-color: var(--background);
+}
+
+/* ... keep existing code */
