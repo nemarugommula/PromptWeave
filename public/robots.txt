@@ -1,8 +1,10 @@
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +12,28 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 1
+
+User-agent: YandexBot
+Allow: /
+Crawl-delay: 1
+
 User-agent: *
 Allow: /
+
+# Disallow specific paths that shouldn't be indexed (if any)
+# User-agent: *
+# Disallow: /admin/
+# Disallow: /private/
+
+# Sitemap location
+Sitemap: https://yourdomain.com/sitemap.xml
