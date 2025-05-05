@@ -12,6 +12,7 @@ import TemplatesConfig from "./pages/TemplatesConfig";
 const EditorPage = React.lazy(() => import("./pages/EditorPage"));
 import NotFound from "./pages/NotFound";
 import { LayoutProvider } from "./contexts/LayoutContext";
+import { ErrorBoundary } from "./components/ui/error-boundary";
 
 // Create a single query client instance
 const queryClient = new QueryClient({
@@ -35,30 +36,45 @@ const App = () => {
   }
   return (
     <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <LayoutProvider>
-          <TooltipProvider>
-            <Toaster />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/templates" element={<TemplatesConfig />} />
-                <Route
-                  path="/editor/:id"
-                  element={
-                    <Suspense fallback={<div className="p-4">Loading editor...</div>}>
-                      <EditorPage />
-                    </Suspense>
-                  }
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </LayoutProvider>
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <LayoutProvider>
+            <TooltipProvider>
+              <Toaster />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/templates" element={<TemplatesConfig />} />
+                  <Route
+                    path="/editor/:id"
+                    element={
+                      <Suspense fallback={<div className="p-4">Loading editor...</div>}>
+                        <ErrorBoundary>
+                          <EditorPage />
+                        </ErrorBoundary>
+                      </Suspense>
+                    }
+                  />
+                  {/* New route for creating a new prompt */}
+                  <Route
+                    path="/editor"
+                    element={
+                      <Suspense fallback={<div className="p-4">Loading editor...</div>}>
+                        <ErrorBoundary>
+                          <EditorPage />
+                        </ErrorBoundary>
+                      </Suspense>
+                    }
+                  />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </LayoutProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
     </React.StrictMode>
   );
 };

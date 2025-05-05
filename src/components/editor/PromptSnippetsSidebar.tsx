@@ -106,8 +106,8 @@ const PromptSnippetsSidebar: React.FC<PromptSnippetsSidebarProps> = ({ onInsert,
     if (storedFormatters) {
       try {
         const parsedFormatters = JSON.parse(storedFormatters);
-        // Apply icons to formatters (since React elements can't be serialized)
-        const formattersWithIcons = parsedFormatters.map((formatter: FormatOption) => ({
+        // Apply icons to formatters (since icons aren't stored in localStorage)
+        const formattersWithIcons = parsedFormatters.map((formatter: Omit<FormatOption, 'icon'>) => ({
           ...formatter,
           icon: getIconForType(formatter.type)
         }));
@@ -124,7 +124,10 @@ const PromptSnippetsSidebar: React.FC<PromptSnippetsSidebarProps> = ({ onInsert,
     const storedSnippets = localStorage.getItem(SNIPPETS_STORAGE_KEY);
     if (storedSnippets) {
       try {
-        setSnippets(JSON.parse(storedSnippets));
+        const parsedSnippets = JSON.parse(storedSnippets);
+        // Filter out any invalid snippets that might cause errors
+        const validSnippets = parsedSnippets.filter(s => s && s.category && s.title && s.content);
+        setSnippets(validSnippets);
       } catch (e) {
         console.error('Error parsing stored snippets:', e);
         setSnippets(DEFAULT_SNIPPETS);

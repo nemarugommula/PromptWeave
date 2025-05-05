@@ -155,7 +155,7 @@ You are an AI assistant that follows instructions carefully.`
     title: 'Output Formatting',
     description: 'Template for output formatting',
     content: 'Output:\n```json\n{\n  "summary": "string",\n  "examples": ["string"]\n}\n```'
-  },
+  }
   ,{
     id: 'func-template-safety-1',
     category: 'Function Templates',

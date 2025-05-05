@@ -136,8 +136,11 @@ const TemplatesConfig: React.FC = () => {
 
   const { densityMode } = useLayout(); // Get densityMode from layout context
 
-  // Get unique categories from snippets
-  const categories = Array.from(new Set(snippets.map(s => s.category)));
+  // Get unique categories from snippets - with null check
+  const categories = Array.from(new Set(
+    snippets.filter(s => s && s.category)
+           .map(s => s.category)
+  ));
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -145,7 +148,12 @@ const TemplatesConfig: React.FC = () => {
       const storedFormatters = localStorage.getItem(FORMATTERS_STORAGE_KEY);
       if (storedFormatters) {
         try {
-          setFormatters(JSON.parse(storedFormatters));
+          const parsedFormatters = JSON.parse(storedFormatters);
+          const formattersWithIcons = parsedFormatters.map((f: Omit<FormatOption, 'icon'>) => ({
+            ...f,
+            icon: getIconForType(f.type)
+          }));
+          setFormatters(formattersWithIcons);
         } catch (e) {
           console.error('Error parsing stored formatters:', e);
           setFormatters(DEFAULT_FORMATTERS);
@@ -175,14 +183,17 @@ const TemplatesConfig: React.FC = () => {
 
   // Save formatters to localStorage
   const saveFormatters = (updatedFormatters: FormatOption[]) => {
-    localStorage.setItem(FORMATTERS_STORAGE_KEY, JSON.stringify(updatedFormatters));
+    const formattersWithoutIcons = updatedFormatters.map(({ icon, ...rest }) => rest);
+    localStorage.setItem(FORMATTERS_STORAGE_KEY, JSON.stringify(formattersWithoutIcons));
     setFormatters(updatedFormatters);
   };
 
   // Save snippets to localStorage
   const saveSnippets = (updatedSnippets: Snippet[]) => {
-    localStorage.setItem(SNIPPETS_STORAGE_KEY, JSON.stringify(updatedSnippets));
-    setSnippets(updatedSnippets);
+    // Filter out any null or invalid snippets before saving
+    const validSnippets = updatedSnippets.filter(s => s && s.category && s.title && s.content);
+    localStorage.setItem(SNIPPETS_STORAGE_KEY, JSON.stringify(validSnippets));
+    setSnippets(validSnippets);
   };
 
   // Reset formatters to defaults
@@ -258,25 +269,46 @@ const TemplatesConfig: React.FC = () => {
       return;
     }
 
-    const updatedFormatter: FormatOption = {
+    const updatedFormatter: Omit<FormatOption, 'icon'> & { icon?: React.ReactNode } = {
       id: formatterId,
-      icon: <Code className="h-4 w-4" />, // Default icon, will be replaced on render
+      // Remove icon from what gets saved to localStorage
       label: formatterLabel,
       type: formatterType,
       shortcut: formatterShortcut || undefined,
       template: formatterTemplate
     };
 
-    let updatedFormatters: FormatOption[];
+    let updatedFormatters: (Omit<FormatOption, 'icon'> & { icon?: React.ReactNode })[];
     if (editingFormatter) {
       updatedFormatters = formatters.map(f => 
-        f.id === editingFormatter.id ? updatedFormatter : f
+        f.id === editingFormatter.id ? updatedFormatter : { 
+          id: f.id, 
+          label: f.label, 
+          type: f.type, 
+          shortcut: f.shortcut, 
+          template: f.template 
+        }
       );
     } else {
-      updatedFormatters = [...formatters, updatedFormatter];
+      updatedFormatters = [...formatters.map(f => ({ 
+        id: f.id, 
+        label: f.label, 
+        type: f.type, 
+        shortcut: f.shortcut, 
+        template: f.template 
+      })), updatedFormatter];
     }
 
-    saveFormatters(updatedFormatters);
+    // Save only serializable data without React elements
+    localStorage.setItem(FORMATTERS_STORAGE_KEY, JSON.stringify(updatedFormatters));
+    
+    // For display in UI, add back the icons
+    const formattersWithIcons = updatedFormatters.map(f => ({
+      ...f,
+      icon: getIconForType(f.type)
+    }));
+    
+    setFormatters(formattersWithIcons as FormatOption[]);
     setIsEditDialogOpen(false);
     toast({
       title: editingFormatter ? 'Formatter Updated' : 'Formatter Created',
@@ -396,7 +428,11 @@ const TemplatesConfig: React.FC = () => {
         const data = JSON.parse(e.target?.result as string);
         
         if (data.formatters) {
-          saveFormatters(data.formatters);
+          const formattersWithIcons = data.formatters.map((f: Omit<FormatOption, 'icon'>) => ({
+            ...f,
+            icon: getIconForType(f.type)
+          }));
+          saveFormatters(formattersWithIcons);
         }
         
         if (data.snippets) {
