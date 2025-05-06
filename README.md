@@ -92,7 +92,7 @@
 git clone https://github.com/nemarugommula/PromptWeave
 
 # Navigate to the directory
-cd prompt-weave-forge
+cd PromptWeave
 
 # Install dependencies
 vite install
