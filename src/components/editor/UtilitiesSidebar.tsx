@@ -5,6 +5,19 @@ import {
   History,
   ChevronDown,
   ChevronUp,
+  FileText,
+  AlignLeft,
+  BarChart2,
+  AlignJustify,
+  Cpu,
+  FileType,
+  Hash,
+  BarChart,
+  Save,
+  Clock,
+  Sparkles,
+  LampDesk,
+  Gauge,
 } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
@@ -14,6 +27,7 @@ import { cn } from '@/lib/utils';
 
 const SIDEBAR_STATE_KEY = 'utilities-sidebar-collapsed';
 const VERSIONS_STATE_KEY = 'utilities-sidebar-versions-expanded';
+const PROMPT_STATS_STATE_KEY = 'utilities-sidebar-prompt-stats-expanded';
 
 interface UtilitiesSidebarProps {
   content: string;
@@ -48,7 +62,10 @@ const TokenProgressBar: React.FC<TokenProgressBarProps> = ({ percentage, compact
     <div className="w-full">
       {!compact && (
         <div className="flex justify-between text-xs mb-1">
-          <span>Token Usage</span>
+          <div className="flex items-center">
+            <Gauge className="h-3.5 w-3.5 mr-1" />
+            <span>Token Usage</span>
+          </div>
           <span className={cn(
             percentage >= 100 ? 'text-red-500 font-semibold' : 
             percentage >= 80 ? 'text-yellow-600' : 'text-primary'
@@ -83,12 +100,21 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
 }) => {
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [isFirstRender, setIsFirstRender] = useState<boolean>(true);
+  const [promptStatsExpanded, setPromptStatsExpanded] = useState<boolean>(true);
 
   // Load collapse state
   useEffect(() => {
     const stored = localStorage.getItem(SIDEBAR_STATE_KEY);
     if (stored !== null) {
       setCollapsed(JSON.parse(stored));
+    }
+  }, []);
+  
+  // Load prompt stats expanded state
+  useEffect(() => {
+    const stored = localStorage.getItem(PROMPT_STATS_STATE_KEY);
+    if (stored !== null) {
+      setPromptStatsExpanded(JSON.parse(stored));
     }
   }, []);
   
@@ -109,6 +135,11 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
     localStorage.setItem(VERSIONS_STATE_KEY, JSON.stringify(showVersions));
   }, [showVersions]);
 
+  // Save prompt stats expanded state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem(PROMPT_STATS_STATE_KEY, JSON.stringify(promptStatsExpanded));
+  }, [promptStatsExpanded]);
+
   const toggleCollapsed = () => {
     const next = !collapsed;
     setCollapsed(next);
@@ -125,6 +156,11 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
     
     // Call the original onToggleVersions function
     onToggleVersions();
+  };
+  
+  // Handler for toggling prompt stats section
+  const togglePromptStats = () => {
+    setPromptStatsExpanded(!promptStatsExpanded);
   };
 
   // Compute lineCount and tokenCount
@@ -259,65 +295,157 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
       {/* Expanded view: detailed breakdown */}
       {!collapsed && (
         <div className="flex-1 overflow-y-auto p-2 space-y-4 text-xs">
-          {modelLimit > 0 && (
-            <div className="py-1">
-              <TokenProgressBar percentage={tokenPercentage} />
-              <div className="mt-1 text-xs flex justify-between w-full">
-                <span className="text-muted-foreground">
-                  {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens
-                </span>
-                {tokenPercentage >= 80 && (
-                  <span className={cn(
-                    "text-right",
-                    tokenPercentage >= 100 ? 'text-red-500 font-semibold' : 'text-yellow-600'
-                  )}>
-                    {tokenPercentage >= 100 ? 'Limit reached' : 'Approaching limit'}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
           <div>
-            <div className="font-medium mb-1">Prompt stats</div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>Words<span className="float-right font-mono">{wordCount}</span></div>
-              <div>Chars<span className="float-right font-mono">{charCount}</span></div>
-              <div>Lines<span className="float-right font-mono">{lineCount}</span></div>
-              <div>Tokens<span className="float-right font-mono">{tokenCount}</span></div>
+            <div className="font-medium mb-1.5 flex items-center justify-between text-xs">
+              <div className="flex items-center">
+                <FileText className="h-3.5 w-3.5 mr-1" />
+                <span>Prompt Stats</span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={togglePromptStats}
+                className="h-5 w-5 p-0"
+              >
+                {promptStatsExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </Button>
             </div>
+            
+            {promptStatsExpanded && (
+              <>
+                {/* Prompt Stats Grid */}
+                <div className="grid grid-cols-2 gap-1.5 mb-2">
+                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                      <AlignLeft className="h-2.5 w-2.5 mr-0.5" />
+                      <span>WORDS</span>
+                    </div>
+                    <div className="font-mono text-xs">{wordCount.toLocaleString()}</div>
+                  </div>
+                  
+                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                      <BarChart2 className="h-2.5 w-2.5 mr-0.5" />
+                      <span>CHARS</span>
+                    </div>
+                    <div className="font-mono text-xs">{charCount.toLocaleString()}</div>
+                  </div>
+                  
+                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                      <AlignJustify className="h-2.5 w-2.5 mr-0.5" />
+                      <span>LINES</span>
+                    </div>
+                    <div className="font-mono text-xs">{lineCount.toLocaleString()}</div>
+                  </div>
+                  
+                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                      <Cpu className="h-2.5 w-2.5 mr-0.5" />
+                      <span>TOKENS</span>
+                    </div>
+                    <div className={cn(
+                      "font-mono text-xs",
+                      tokenPercentage >= 100 ? "text-red-500" : 
+                      tokenPercentage >= 80 ? "text-yellow-600" : ""
+                    )}>{tokenCount.toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {/* Token Usage Bar */}
+                {modelLimit > 0 && (
+                  <div className="mb-1">
+                    <TokenProgressBar percentage={tokenPercentage} />
+                    <div className="mt-1 text-xs flex justify-between w-full">
+                      <span className="text-muted-foreground">
+                        {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens
+                      </span>
+                      {tokenPercentage >= 80 && (
+                        <span className={cn(
+                          "text-right",
+                          tokenPercentage >= 100 ? 'text-red-500 font-semibold' : 'text-yellow-600'
+                        )}>
+                          {tokenPercentage >= 100 ? 'Limit reached' : 'Approaching limit'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           <div className='border-b border-t py-2'>
-            <div className="font-medium mb-1">Document outline</div>
+            <div className="font-medium mb-2 flex items-center">
+              <FileType className="h-4 w-4 mr-1.5" />
+              <span>Document Outline</span>
+            </div>
             <ul className="space-y-1">
               {outline.map((item, idx) => (
-                <li key={idx} className="cursor-pointer hover:text-primary"
-                  style={{ marginLeft: (item.level - 1) * 8 }}
+                <li key={idx} className="cursor-pointer hover:text-primary flex items-center gap-1.5"
+                  style={{ marginLeft: Math.max(0, (item.level - 1) * 6) }}
                   onClick={() => onNavigate && onNavigate(item.index)}>
-                  {item.text}
+                  <Hash className={cn("h-3 w-3", item.level === 1 ? "text-primary" : "text-muted-foreground")} />
+                  <span className="truncate">{item.text}</span>
                 </li>
               ))}
             </ul>
           </div>
           <div className='border-b pb-2'>
-            <div className="font-medium mb-1">Section Stats</div>
-            <ul className="space-y-1">
+            <div className="font-medium mb-2 flex items-center">
+              <BarChart className="h-4 w-4 mr-1.5" />
+              <span>Section Stats</span>
+            </div>
+            <div className="overflow-hidden rounded-md border border-border/40 bg-muted/30">
               {sections.map((sec, idx) => (
-                <li key={idx} className={sec.tokenCount === maxSectionTokens ? 'font-semibold text-primary' : ''}>
-                  <span style={{ marginLeft: (sec.level - 1) * 8 }}>{sec.text}</span>
-                  <span className="float-right font-mono">{sec.tokenCount}</span>
-                </li>
+                <div 
+                  key={idx} 
+                  className={cn(
+                    "px-2 py-1 flex justify-between items-center text-xs hover:bg-muted/70 transition-colors", 
+                    sec.tokenCount === maxSectionTokens ? 'bg-primary/10' : '',
+                    idx !== sections.length - 1 ? "border-b border-border/20" : ""
+                  )}
+                >
+                  <div className="flex items-center gap-1.5 truncate max-w-[75%]">
+                    <div style={{ marginLeft: Math.max(0, (sec.level - 1) * 4) }} className="flex-shrink-0">
+                      <Hash className={cn(
+                        "h-3 w-3", 
+                        sec.tokenCount === maxSectionTokens ? "text-primary" : "text-muted-foreground"
+                      )} />
+                    </div>
+                    <span className={cn("truncate", sec.tokenCount === maxSectionTokens ? "text-primary font-medium" : "")}>{sec.text}</span>
+                  </div>
+                  <div className={cn(
+                    "font-mono text-right",
+                    sec.tokenCount === maxSectionTokens ? "text-primary font-medium" : "text-muted-foreground"
+                  )}>{sec.tokenCount}</div>
+                </div>
               ))}
-            </ul>
-          </div>
-          <div>
-            <div className="font-medium mb-1">Last Saved</div>
-            <div className="text-muted-foreground text-xxs">
-              {lastSavedTime ? new Date(lastSavedTime).toLocaleString() : 'N/A'}
             </div>
           </div>
           <div>
-            <div className="font-medium mb-1">Suggestions (Phase 2)</div>
-            <div className="text-muted-foreground text-xxs">Coming soon...</div>
+            <div className="font-medium mb-2 flex items-center">
+              <Save className="h-4 w-4 mr-1.5" />
+              <span>Last Saved</span>
+            </div>
+            <div className="bg-muted/50 rounded-md border border-border/40 p-2 flex items-center gap-2">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="text-xs font-medium">
+                {lastSavedTime ? new Date(lastSavedTime).toLocaleString() : 'N/A'}
+              </div>
+            </div>
+          </div>
+          <div>
+            <div className="font-medium mb-2 flex items-center">
+              <Sparkles className="h-4 w-4 mr-1.5" />
+              <span>Suggestions</span>
+              <Badge variant="outline" className="ml-1.5 text-[9px] py-0 h-4">Phase 2</Badge>
+            </div>
+            <div className="bg-muted/30 rounded-md border border-border/40 border-dashed p-2 flex items-center justify-center">
+              <div className="text-muted-foreground text-xs flex items-center gap-1.5">
+                <LampDesk className="h-3.5 w-3.5" />
+                <span>Coming soon...</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
