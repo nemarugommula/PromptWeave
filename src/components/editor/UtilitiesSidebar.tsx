@@ -9,9 +9,11 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const SIDEBAR_STATE_KEY = 'utilities-sidebar-collapsed';
+const VERSIONS_STATE_KEY = 'utilities-sidebar-versions-expanded';
 
 interface UtilitiesSidebarProps {
   content: string;
@@ -24,6 +26,7 @@ interface UtilitiesSidebarProps {
   saving: boolean;
   onToggleVersions: () => void;
   showVersions: boolean;
+  versionCount: number;
   children?: React.ReactNode;
 }
 
@@ -75,9 +78,11 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
   saving,
   onToggleVersions,
   showVersions, 
+  versionCount,
   children 
 }) => {
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [isFirstRender, setIsFirstRender] = useState<boolean>(true);
 
   // Load collapse state
   useEffect(() => {
@@ -86,6 +91,23 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
       setCollapsed(JSON.parse(stored));
     }
   }, []);
+  
+  // Check if this is first open and auto-expand version list
+  useEffect(() => {
+    if (isFirstRender) {
+      const storedVersionState = localStorage.getItem(VERSIONS_STATE_KEY);
+      // If this is the first time (no stored state), show versions
+      if (storedVersionState === null && !showVersions) {
+        onToggleVersions();
+      }
+      setIsFirstRender(false);
+    }
+  }, [isFirstRender, showVersions, onToggleVersions]);
+
+  // Save version list state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem(VERSIONS_STATE_KEY, JSON.stringify(showVersions));
+  }, [showVersions]);
 
   const toggleCollapsed = () => {
     const next = !collapsed;
@@ -173,20 +195,24 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
             </Tooltip>
           </div>
         ) : (
-          <div className="w-full flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">Version History</span>
+          <div className="w-full flex flex-col gap-1">
+            <div className="flex items-center ">
+            <History className="h-4 w-4" />              
+            <span className="text-xs font-medium ml-1">version </span>
+            <Badge className=" ml-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px] bg-primary text-primary-foreground">
+                {versionCount}
+              </Badge>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={handleToggleVersions}
-                className="h-6 w-6"
+                className="h-5 w-5 ml-auto p-0"
               >
                 {showVersions ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </Button>
             </div>
             {showVersions && (
-              <div className="max-h-40 overflow-y-auto border rounded p-1 mt-2">
+              <div className="max-h-40 overflow-y-auto border p-1 rounded ">
                 {children}
               </div>
             )}

@@ -1,11 +1,10 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { 
-  Clock, 
-  Check, 
-  ChevronRight, 
   ArrowLeftRight,
-  CircleDot
+  History,
+  Check,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { VersionSchema } from '@/lib/db/schema';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface VersionListProps {
   versions: VersionSchema[];
@@ -30,9 +30,19 @@ export const VersionList: React.FC<VersionListProps> = ({
   className
 }) => {
   const [selectedVersions, setSelectedVersions] = React.useState<string[]>([]);
+  const [hoveredVersion, setHoveredVersion] = React.useState<string | null>(null);
 
   // Sort versions by creation time (newest first)
   const sortedVersions = [...versions].sort((a, b) => b.created_at - a.created_at);
+
+  // Generate version numbers (v1, v2, etc.) - oldest version gets v1
+  const versionNumbers = React.useMemo(() => {
+    const versionsByDate = [...versions].sort((a, b) => a.created_at - b.created_at);
+    return versionsByDate.reduce<Record<string, string>>((acc, version, index) => {
+      acc[version.id] = `v${index + 1}`;
+      return acc;
+    }, {});
+  }, [versions]);
 
   const handleVersionSelect = (version: VersionSchema) => {
     onSelectVersion(version);
@@ -71,8 +81,10 @@ export const VersionList: React.FC<VersionListProps> = ({
 
   if (!versions || versions.length === 0) {
     return (
-      <div className={cn("p-1 text-center text-muted-foreground text-xs", className)}>
-        No versions
+      <div className="flex flex-col items-center justify-center p-4 text-center text-muted-foreground gap-1.5">
+        <History className="h-8 w-8 opacity-20" />
+        <div className="text-sm">No version history</div>
+        <div className="text-xs opacity-70">Changes will appear here</div>
       </div>
     );
   }
@@ -108,72 +120,99 @@ export const VersionList: React.FC<VersionListProps> = ({
 
   return (
     <div className={cn("flex flex-col", className)}>
-      {selectedVersions.length === 2 && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="w-full py-1 text-xs gap-1 h-auto hover:bg-accent"
-          onClick={handleCompare}
-        >
-          <ArrowLeftRight className="h-3 w-3" />
-          Compare
-        </Button>
-      )}
+      <AnimatePresence>
+        {selectedVersions.length === 2 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="w-full mb-1 text-xs gap-1 h-7 bg-primary/10 hover:bg-primary/20 text-primary"
+              onClick={handleCompare}
+            >
+              <ArrowLeftRight className="h-3 w-3" />
+              Compare Selected
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       
       <ScrollArea className="w-full">
-        <ul className="space-y-0.5 text-xs pt-1">
+        <ul className="space-y-0.5">
           {sortedVersions.map((version) => {
             const isCurrentVersion = version.id === currentVersionId;
             const isSelected = selectedVersions.includes(version.id);
+            const isHovered = hoveredVersion === version.id;
             const tokenCount = version.metadata?.tokens || getTokenCount(version.content);
             const timeAgo = formatTimeAgo(version.created_at);
             const previewText = version.content.trim().split('\n')[0] || '';
+            const versionNumber = versionNumbers[version.id];
             
             return (
-              <li 
+              <motion.li 
                 key={version.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
                 className={cn(
-                  "py-1 px-1.5 cursor-pointer flex items-center gap-1.5 rounded",
-                  isCurrentVersion ? "bg-accent" : "hover:bg-accent/50",
-                  isSelected && "border-l-2 border-primary pl-1"
+                  "py-1.5 px-2 cursor-pointer rounded-sm transition-all",
+                  "border-l-2",
+                  isCurrentVersion ? "bg-accent/50 border-l-primary" : 
+                    isHovered ? "bg-accent/30 border-l-transparent" : 
+                    "hover:bg-accent/20 border-l-transparent",
+                  isSelected && "bg-accent/40"
                 )}
                 onClick={() => handleVersionSelect(version)}
+                onMouseEnter={() => setHoveredVersion(version.id)}
+                onMouseLeave={() => setHoveredVersion(null)}
               >
-                {isCurrentVersion ? (
-                  <CircleDot className="h-2.5 w-2.5 text-primary flex-shrink-0" />
-                ) : (
-                  <div 
+                <div className="text-xs line-clamp-1 mb-1 font-medium">
+                  {previewText || "Untitled version"}
+                </div>
+                
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="text-muted-foreground">
+                    {tokenCount} tokens
+                  </span>
+                  
+                  <Badge 
+                    variant={isSelected ? "default" : "outline"}
                     className={cn(
-                      "h-2.5 w-2.5 rounded-full border flex-shrink-0", 
-                      isSelected ? "bg-primary border-primary" : "border-muted"
+                      "px-1 py-0 text-[10px] h-4 font-medium ml-1.5",
+                      isCurrentVersion && !isSelected && "border-primary text-primary",
+                      isSelected && "bg-primary"
                     )}
                     onClick={(e) => toggleVersionSelection(version.id, e)}
-                  />
-                )}
-                
-                <div className="flex-1 min-w-0 flex flex-col">
-                  <div className="flex items-start justify-between w-full gap-1">
-                    <span className="font-medium truncate max-w-[70%]" title={previewText}>
-                      {previewText.substring(0, 25)}
-                      {previewText.length > 25 ? "..." : ""}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {timeAgo}
-                    </span>
-                  </div>
+                  >
+                    {versionNumber}
+                    {isSelected && (
+                      <Check className="h-2 w-2 ml-0.5" />
+                    )}
+                  </Badge>
                   
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>{tokenCount} tokens</span>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="text-xs">
-                        {format(new Date(version.created_at), 'MMM d, yyyy h:mm a')}
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-muted-foreground ml-auto flex items-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5" />
+                        {timeAgo}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="text-xs">
+                      Created on {format(new Date(version.created_at), 'MMM d, yyyy h:mm a')}
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  {isCurrentVersion && (
+                    <span className="text-primary font-medium">
+                      Current
+                    </span>
+                  )}
                 </div>
-              </li>
+              </motion.li>
             );
           })}
         </ul>

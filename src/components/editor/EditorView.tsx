@@ -430,6 +430,7 @@ const EditorView: React.FC<EditorViewProps> = ({ prompt: initialPrompt }) => {
               }
             }}
             showVersions={showVersions}
+            versionCount={versions.length}
             onNavigate={pos => {
               try {
                 if (editorRef.current) {
