@@ -9,6 +9,7 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 const SIDEBAR_STATE_KEY = 'utilities-sidebar-collapsed';
 
@@ -25,6 +26,43 @@ interface UtilitiesSidebarProps {
   showVersions: boolean;
   children?: React.ReactNode;
 }
+
+// Token usage progress bar component
+interface TokenProgressBarProps {
+  percentage: number;
+  compact?: boolean;
+}
+
+const TokenProgressBar: React.FC<TokenProgressBarProps> = ({ percentage, compact }) => {
+  // Determine color based on percentage
+  const barColor = useMemo(() => {
+    if (percentage >= 100) return 'bg-red-500';
+    if (percentage >= 80) return 'bg-yellow-500';
+    return 'bg-primary';
+  }, [percentage]);
+
+  return (
+    <div className="w-full">
+      {!compact && (
+        <div className="flex justify-between text-xs mb-1">
+          <span>Token Usage</span>
+          <span className={cn(
+            percentage >= 100 ? 'text-red-500 font-semibold' : 
+            percentage >= 80 ? 'text-yellow-600' : 'text-primary'
+          )}>
+            {percentage.toFixed(0)}%
+          </span>
+        </div>
+      )}
+      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+        <div 
+          className={`h-full rounded-full transition-all duration-300 ${barColor}`} 
+          style={{ width: `${Math.min(percentage, 100)}%` }} 
+        />
+      </div>
+    </div>
+  );
+};
 
 const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({ 
   content, 
@@ -81,6 +119,12 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
   const modelLimit = MODEL_LIMITS[selectedModel] ?? 0;
   const warningThreshold = modelLimit ? modelLimit * 0.9 : 0;
   const showWarning = modelLimit > 0 && tokenCount >= warningThreshold;
+  
+  // Calculate token usage percentage
+  const tokenPercentage = useMemo(() => {
+    if (!modelLimit) return 0;
+    return (tokenCount / modelLimit) * 100;
+  }, [tokenCount, modelLimit]);
 
   // Extract outline headings
   const outline = useMemo(() => {
@@ -153,6 +197,18 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
       {/* Minimized view: show compact metrics */}
       {collapsed && (
         <div className="flex flex-col items-center space-y-2 flex-1 p-2 text-xs">
+          {modelLimit > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-full py-1">
+                  <TokenProgressBar percentage={tokenPercentage} compact={true} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens ({tokenPercentage.toFixed(0)}%)
+              </TooltipContent>
+            </Tooltip>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="cursor-default">🧠</span>
@@ -177,10 +233,22 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
       {/* Expanded view: detailed breakdown */}
       {!collapsed && (
         <div className="flex-1 overflow-y-auto p-2 space-y-4 text-xs">
-          {showWarning && (
-            <div className="flex items-center text-yellow-600 font-medium">
-              <span className="mr-1">⚠</span>
-              <span>Approaching {selectedModel} limit: {modelLimit.toLocaleString()}</span>
+          {modelLimit > 0 && (
+            <div className="py-1">
+              <TokenProgressBar percentage={tokenPercentage} />
+              <div className="mt-1 text-xs flex justify-between w-full">
+                <span className="text-muted-foreground">
+                  {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens
+                </span>
+                {tokenPercentage >= 80 && (
+                  <span className={cn(
+                    "text-right",
+                    tokenPercentage >= 100 ? 'text-red-500 font-semibold' : 'text-yellow-600'
+                  )}>
+                    {tokenPercentage >= 100 ? 'Limit reached' : 'Approaching limit'}
+                  </span>
+                )}
+              </div>
             </div>
           )}
           <div>
