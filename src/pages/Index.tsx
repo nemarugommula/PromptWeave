@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { ArrowRight, Code, History, FileText, GitMerge } from "lucide-react";
+import { ArrowRight, Code, History, FileText, GitMerge, Github, Twitter } from "lucide-react";
 import { useDatabaseInitialization } from "@/hooks/dashboard/useDatabaseInitialization";
 
 const FeatureCard: React.FC<{
@@ -86,6 +86,24 @@ const Index = () => {
           <p className="text-xl md:text-2xl text-muted-foreground mb-8">
             The AI-powered prompt editor for crafting perfect system prompts
           </p>
+          
+          <div className="mb-8 flex justify-center">
+            <a 
+              href="https://github.com/nemarugommula/PromptWeave" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-muted-foreground/30 bg-background/60 backdrop-blur-sm shadow-sm hover:shadow-md transition-all hover:border-primary/50">
+                <Github className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <span className="font-medium">
+                  <span className="text-muted-foreground">100% Open Source on </span>
+                  <span className="text-primary group-hover:underline">GitHub</span>
+                </span>
+                <span className="ml-1 text-yellow-500">★</span>
+              </div>
+            </a>
+          </div>
 
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
             <Button size="lg" asChild className="gap-2">
@@ -133,9 +151,20 @@ const Index = () => {
                   : "Error"}
               </span>
             </p>
-            <Button asChild>
+            <Button asChild className="mb-4">
               <Link to="/dashboard">Go to Dashboard</Link>
             </Button>
+            
+            <div className="mt-8 pt-4 border-t border-muted-foreground/20 text-sm text-muted-foreground">
+              <a 
+                href="https://x.com/Nemarugommulav1" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+              >
+                <Twitter className="h-4 w-4" /> Follow the developer
+              </a>
+            </div>
           </div>
         </div>
       </div>
