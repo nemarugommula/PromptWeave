@@ -4,7 +4,8 @@ import {
   ArrowLeftRight,
   History,
   Check,
-  Clock
+  Clock,
+  CircleIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -140,7 +141,6 @@ export const VersionList: React.FC<VersionListProps> = ({
         )}
       </AnimatePresence>
 
-      
       <ScrollArea className="w-full">
         <ul className="space-y-0.5">
           {sortedVersions.map((version) => {
@@ -170,33 +170,51 @@ export const VersionList: React.FC<VersionListProps> = ({
                 onMouseEnter={() => setHoveredVersion(version.id)}
                 onMouseLeave={() => setHoveredVersion(null)}
               >
-                <div className="text-xs line-clamp-1 mb-1 font-medium">
-                  {previewText || "Untitled version"}
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-xs font-medium truncate flex-1">
+                    {previewText || "Untitled version"}
+                  </span>
+                  <Badge 
+                    variant="outline"
+                    className={cn(
+                      "px-1 py-0 text-[10px] h-4 font-medium ml-auto shrink-0",
+                      isCurrentVersion && "border-primary text-primary"
+                    )}
+                  >
+                    {versionNumber}
+                  </Badge>
                 </div>
                 
-                <div className="flex items-center gap-1.5 text-[10px]">
-                  <span className="text-muted-foreground">
+                <div className="flex items-center gap-1 text-[10px]">
+                  {/* Radio-like selection element */}
+                  <div 
+                    onClick={(e) => toggleVersionSelection(version.id, e)}
+                    className={cn(
+                      "h-3.5 w-3.5 rounded-full border flex items-center justify-center transition-colors shrink-0",
+                      isSelected 
+                        ? "bg-primary border-primary" 
+                        : "border-muted-foreground/50 hover:border-muted-foreground"
+                    )}
+                  >
+                    {isSelected && (
+                      <Check className="h-2 w-2 text-background" />
+                    )}
+                  </div>
+                  
+                  <span className="text-muted-foreground whitespace-nowrap">
                     {tokenCount} tokens
                   </span>
                   
-                  <Badge 
-                    variant={isSelected ? "default" : "outline"}
-                    className={cn(
-                      "px-1 py-0 text-[10px] h-4 font-medium ml-1.5",
-                      isCurrentVersion && !isSelected && "border-primary text-primary",
-                      isSelected && "bg-primary"
-                    )}
-                    onClick={(e) => toggleVersionSelection(version.id, e)}
-                  >
-                    {versionNumber}
-                    {isSelected && (
-                      <Check className="h-2 w-2 ml-0.5" />
-                    )}
-                  </Badge>
+                  {isCurrentVersion && (
+                    <span className="text-primary text-[10px] font-medium flex items-center gap-0.5 whitespace-nowrap">
+                      <CircleIcon className="h-1.5 w-1.5 fill-primary" />
+                      Current
+                    </span>
+                  )}
                   
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-muted-foreground ml-auto flex items-center gap-0.5">
+                      <span className="text-muted-foreground ml-auto flex items-center gap-0.5 whitespace-nowrap">
                         <Clock className="h-2.5 w-2.5" />
                         {timeAgo}
                       </span>
@@ -205,12 +223,6 @@ export const VersionList: React.FC<VersionListProps> = ({
                       Created on {format(new Date(version.created_at), 'MMM d, yyyy h:mm a')}
                     </TooltipContent>
                   </Tooltip>
-                  
-                  {isCurrentVersion && (
-                    <span className="text-primary font-medium">
-                      Current
-                    </span>
-                  )}
                 </div>
               </motion.li>
             );
