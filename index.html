@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,12 +17,85 @@
     <meta name="twitter:image" content="/lovable-uploads/4f069f78-a071-421c-93ab-08290fa0a0d4.png" />
     
     <link rel="icon" href="/lovable-uploads/4f069f78-a071-421c-93ab-08290fa0a0d4.png" type="image/png">
+    <style>
+      /* Basic styles for SEO content that will be visible to crawlers */
+      .seo-content {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .seo-content h1 {
+        background: linear-gradient(to right, #9333ea, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      .seo-content p.tagline {
+        text-align: center;
+        font-size: 1.5rem;
+        color: #64748b;
+        margin-bottom: 2rem;
+      }
+      .seo-feature {
+        margin-bottom: 1.5rem;
+      }
+      .seo-feature h3 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+      /* This will hide the SEO content when JavaScript loads */
+      .js-loaded .seo-content {
+        display: none;
+      }
+    </style>
   </head>
 
   <body>
+    <!-- SEO-friendly content that will be visible to crawlers -->
+    <div class="seo-content">
+      <h1>PromptWeave</h1>
+      <p class="tagline">The AI-powered prompt editor for crafting perfect system prompts</p>
+      
+      <div class="seo-feature">
+        <h3>Powerful Editor</h3>
+        <p>Our specialized editor provides syntax highlighting, folding, and intelligent sectioning tools for even the most complex prompts.</p>
+      </div>
+      
+      <div class="seo-feature">
+        <h3>Version Control</h3>
+        <p>Create snapshots of your prompts, compare different versions, and roll back to previous iterations when needed.</p>
+      </div>
+      
+      <div class="seo-feature">
+        <h3>Visual Analysis</h3>
+        <p>Visualize your prompts with heat maps, mind maps, and dependency graphs to optimize and refine your AI instructions.</p>
+      </div>
+      
+      <div class="seo-feature">
+        <h3>Browser-Based</h3>
+        <p>PromptWeave runs entirely in your browser with IndexedDB storage, keeping your data private and accessible from any device.</p>
+      </div>
+      
+      <p>PromptWeaver 1.0 is live — Craft the perfect AI prompts with visual editing, version control, and more!</p>
+    </div>
+
+    <!-- React will mount here -->
     <div id="root"></div>
+    
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Script to hide SEO content once React loads -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Add a class to the body once JavaScript runs
+        document.body.classList.add('js-loaded');
+      });
+    </script>
   </body>
 </html>
