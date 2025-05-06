@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   ChevronLeft,
   ChevronRight, 
@@ -18,12 +18,17 @@ import {
   Sparkles,
   LampDesk,
   Gauge,
+  FileSymlink,
+  ChevronDownSquare,
+  ChevronRightSquare,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const SIDEBAR_STATE_KEY = 'utilities-sidebar-collapsed';
 const VERSIONS_STATE_KEY = 'utilities-sidebar-versions-expanded';
@@ -80,6 +85,229 @@ const TokenProgressBar: React.FC<TokenProgressBarProps> = ({ percentage, compact
           style={{ width: `${Math.min(percentage, 100)}%` }} 
         />
       </div>
+    </div>
+  );
+};
+
+// Document outline tree structure
+interface OutlineHeading {
+  level: number;
+  text: string;
+  index: number;
+  tokenCount?: number;
+  children: OutlineHeading[];
+}
+
+// Component for document outline with tree structure
+interface DocumentOutlineProps {
+  headings: { level: number; text: string; index: number; tokenCount?: number }[];
+  onNavigate?: (position: number) => void;
+  currentPosition?: number;
+}
+
+const OutlineTree: React.FC<DocumentOutlineProps> = ({ headings, onNavigate, currentPosition }) => {
+  // Convert flat headings list to hierarchical tree structure
+  const outlineTree = useMemo(() => {
+    const tree: OutlineHeading[] = [];
+    const levelMap: OutlineHeading[] = [];
+
+    for (const heading of headings) {
+      const node: OutlineHeading = {
+        ...heading,
+        children: []
+      };
+
+      // Find the parent level for this heading
+      // If it's a level 1 heading, it goes at the root
+      // Otherwise, look for the most recent heading with a lower level
+      if (heading.level === 1) {
+        tree.push(node);
+      } else {
+        // Find the closest parent (heading with lower level)
+        let parentLevel = heading.level - 1;
+        while (parentLevel > 0) {
+          if (levelMap[parentLevel]) {
+            levelMap[parentLevel].children.push(node);
+            break;
+          }
+          parentLevel--;
+        }
+        
+        // If no parent found, add to root
+        if (parentLevel === 0) {
+          tree.push(node);
+        }
+      }
+
+      // Update the level map with this node
+      levelMap[heading.level] = node;
+      
+      // Clear any deeper levels as they can't be parents to subsequent nodes
+      for (let i = heading.level + 1; i < levelMap.length; i++) {
+        levelMap[i] = undefined as any;
+      }
+    }
+    
+    return tree;
+  }, [headings]);
+
+  return (
+    <ScrollArea className="max-h-[250px] pr-2">
+      <div className="space-y-1">
+        {outlineTree.map((heading, index) => (
+          <OutlineNode 
+            key={index} 
+            heading={heading} 
+            onNavigate={onNavigate} 
+            currentPosition={currentPosition}
+            depth={0}
+          />
+        ))}
+      </div>
+    </ScrollArea>
+  );
+};
+
+interface OutlineNodeProps {
+  heading: OutlineHeading;
+  onNavigate?: (position: number) => void;
+  currentPosition?: number;
+  depth: number;
+}
+
+const OutlineNode: React.FC<OutlineNodeProps> = ({ heading, onNavigate, currentPosition, depth }) => {
+  const [expanded, setExpanded] = useState(true);
+  const isActive = useMemo(() => {
+    if (!currentPosition || currentPosition < heading.index) return false;
+    // Check if this is the active section (between this heading and the next)
+    const isLastInSection = !heading.children.length;
+    if (isLastInSection) return true;
+    
+    // Check if position is within this section but before any children
+    if (heading.children.length > 0) {
+      const firstChildIndex = heading.children[0].index;
+      return currentPosition < firstChildIndex;
+    }
+    
+    return true;
+  }, [currentPosition, heading]);
+
+  const toggleExpanded = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(prev => !prev);
+  }, []);
+
+  // Get heading icon based on level
+  const HeadingIcon = useMemo(() => {
+    return Hash;
+  }, []);
+
+  // Handle click to navigate
+  const handleClick = useCallback(() => {
+    if (onNavigate) {
+      onNavigate(heading.index);
+    }
+  }, [onNavigate, heading.index]);
+
+  return (
+    <div className="outline-node">
+      <div 
+        className={cn(
+          "flex items-center py-1 rounded-sm px-1 gap-1 transition-colors relative group",
+          isActive && "bg-primary/10",
+          "hover:bg-muted/70 cursor-pointer"
+        )}
+        style={{ marginLeft: depth * 12 }}
+        onClick={handleClick}
+      >
+        {/* Indicator line for active section */}
+        {isActive && (
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary rounded-full"
+            aria-hidden="true"
+          />
+        )}
+        
+        {/* Expand/collapse button for nodes with children */}
+        {heading.children.length > 0 && (
+          <button 
+            onClick={toggleExpanded}
+            className="h-4 w-4 flex-shrink-0 hover:bg-muted-foreground/10 rounded-sm transition-colors"
+            aria-label={expanded ? "Collapse section" : "Expand section"}
+          >
+            {expanded ? (
+              <ChevronDown className="h-3 w-3 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            )}
+          </button>
+        )}
+        
+        {/* Section with no children gets an offset */}
+        {heading.children.length === 0 && (
+          <div className="w-4 flex-shrink-0" />
+        )}
+        
+        {/* Heading icon */}
+        <HeadingIcon 
+          className={cn(
+            "h-3.5 w-3.5 flex-shrink-0", 
+            heading.level === 1 
+              ? "text-primary" 
+              : heading.level === 2 
+                ? "text-primary/80" 
+                : "text-muted-foreground"
+          )} 
+        />
+        
+        {/* Heading text */}
+        <span 
+          className={cn(
+            "truncate text-xs",
+            heading.level === 1 ? "font-medium" : "",
+            isActive ? "text-primary" : ""
+          )}
+        >
+          {heading.text}
+        </span>
+        
+        {/* Token count badge that shows on hover */}
+        {heading.tokenCount && (
+          <span 
+            className={cn(
+              "ml-auto text-[10px] opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.5 rounded-full bg-muted-foreground/10",
+              isActive ? "text-primary/80" : "text-muted-foreground"
+            )}
+          >
+            {heading.tokenCount}
+          </span>
+        )}
+      </div>
+      
+      {/* Children */}
+      <AnimatePresence initial={false}>
+        {expanded && heading.children.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-0.5 mt-0.5">
+              {heading.children.map((child, idx) => (
+                <OutlineNode 
+                  key={idx} 
+                  heading={child} 
+                  onNavigate={onNavigate} 
+                  currentPosition={currentPosition}
+                  depth={depth + 1}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -354,7 +582,7 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
 
                 {/* Token Usage Bar */}
                 {modelLimit > 0 && (
-                  <div className="mb-1">
+                  <>
                     <TokenProgressBar percentage={tokenPercentage} />
                     <div className="mt-1 text-xs flex justify-between w-full">
                       <span className="text-muted-foreground">
@@ -369,7 +597,7 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
                         </span>
                       )}
                     </div>
-                  </div>
+                  </>
                 )}
               </>
             )}
@@ -379,16 +607,10 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
               <FileType className="h-4 w-4 mr-1.5" />
               <span>Document Outline</span>
             </div>
-            <ul className="space-y-1">
-              {outline.map((item, idx) => (
-                <li key={idx} className="cursor-pointer hover:text-primary flex items-center gap-1.5"
-                  style={{ marginLeft: Math.max(0, (item.level - 1) * 6) }}
-                  onClick={() => onNavigate && onNavigate(item.index)}>
-                  <Hash className={cn("h-3 w-3", item.level === 1 ? "text-primary" : "text-muted-foreground")} />
-                  <span className="truncate">{item.text}</span>
-                </li>
-              ))}
-            </ul>
+            <OutlineTree 
+              headings={outline} 
+              onNavigate={onNavigate} 
+            />
           </div>
           <div className='border-b pb-2'>
             <div className="font-medium mb-2 flex items-center">
