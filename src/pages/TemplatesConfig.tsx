@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar'; // Import Sidebar component
 import { useLayout } from '@/contexts/LayoutContext'; // Import the LayoutContext
+import { motion } from 'framer-motion'; // Adding framer-motion for animations
 import { 
   Tabs, 
   TabsContent, 
@@ -45,6 +46,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -69,7 +77,10 @@ import {
   MessageSquare,
   Search,
   DownloadCloud,
-  UploadCloud
+  UploadCloud,
+  Settings,
+  Import,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Snippet } from '@/lib/snippets';
@@ -519,6 +530,7 @@ const TemplatesConfig: React.FC = () => {
     }
   };
 
+  // Containerization of the header section with animations
   return (
     <div className="flex h-screen w-full overflow-hidden"> 
       {/* Left side nav - Sidebar */}
@@ -529,55 +541,140 @@ const TemplatesConfig: React.FC = () => {
       {/* Main content - only this should scroll */}
       <div className="flex-grow h-screen overflow-y-auto">
         <div className={containerClass}>
-          {/* Enhanced header with better styling and information */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Template Configuration</h1>
-                <p className="text-muted-foreground mt-1">
-                  Customize formatting options and prompt snippets for the editor sidebar.
-                </p>
-              </div>
+          {/* Enhanced header with animations and styling similar to DashboardHeader */}
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-4 mb-8"
+          >
+            {/* Top row with title and primary actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <motion.div 
+                variants={{
+                  hidden: { opacity: 0, y: -10 },
+                  show: { opacity: 1, y: 0 }
+                }}
+                className="flex items-center gap-2"
+              >
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                  <Settings className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">Template Configuration</h1>
+                  <p className="text-muted-foreground text-sm hidden sm:block">
+                    Customize formatting options and prompt snippets
+                  </p>
+                </div>
+              </motion.div>
               
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => activeTab === 'formatters' ? openFormatterEditDialog() : openSnippetEditDialog()}
-                  className="gap-1"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add {activeTab === 'formatters' ? 'Formatter' : 'Snippet'}</span>
-                </Button>
-                <Button variant="outline" onClick={exportData} className="gap-1">
-                  <DownloadCloud className="h-4 w-4" />
-                  <span>Export</span>
-                </Button>
-                
-                <div className="relative">
-                  <input
-                    type="file"
-                    id="import-file"
-                    className="absolute inset-0 opacity-0 w-full cursor-pointer"
-                    accept=".json"
-                    onChange={importData}
-                  />
-                  <Button variant="outline" className="gap-1">
-                    <UploadCloud className="h-4 w-4" />
-                    <span>Import</span>
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: -10 },
+                  show: { opacity: 1, y: 0 }
+                }}
+                className="flex gap-2"
+              >
+                {/* Actions on desktop */}
+                <div className="hidden md:flex gap-2">
+                  {/* Add Button */}
+                  <Button 
+                    onClick={() => activeTab === 'formatters' ? openFormatterEditDialog() : openSnippetEditDialog()}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" /> Create
+                  </Button>
+
+                  {/* Import Button */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="import-file"
+                      className="absolute inset-0 opacity-0 w-full cursor-pointer"
+                      accept=".json"
+                      onChange={importData}
+                    />
+                    <Button 
+                      variant="outline" 
+                      className="gap-2"
+                    >
+                      <Import className="h-4 w-4" /> Import
+                    </Button>
+                  </div>
+                  
+                  {/* Export Button */}
+                  <Button 
+                    variant="outline" 
+                    onClick={exportData} 
+                    className="gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" /> Export
+                  </Button>
+                  
+                  {/* Reset Button */}
+                  <Button 
+                    variant="outline" 
+                    onClick={activeTab === 'formatters' ? resetFormattersToDefault : resetSnippetsToDefault}
+                    className="gap-2"
+                  >
+                    <span>Reset</span>
                   </Button>
                 </div>
                 
-                <Button 
-                  variant="outline" 
-                  onClick={activeTab === 'formatters' ? resetFormattersToDefault : resetSnippetsToDefault}
-                  className="gap-1"
-                >
-                  <span>Reset</span>
-                </Button>
-              </div>
+                {/* Actions on mobile - dropdown menu */}
+                <div className="md:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="gap-2">
+                        <Plus className="h-4 w-4" /> 
+                        <span>Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => activeTab === 'formatters' ? openFormatterEditDialog() : openSnippetEditDialog()}>
+                        <Plus className="h-4 w-4 mr-2" /> Create New
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => document.getElementById('import-file')?.click()}>
+                        <Import className="h-4 w-4 mr-2" /> Import
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={exportData}>
+                        <ExternalLink className="h-4 w-4 mr-2" /> Export All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={activeTab === 'formatters' ? resetFormattersToDefault : resetSnippetsToDefault}>
+                        <Settings className="h-4 w-4 mr-2" /> Reset
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  {/* Hidden input for mobile import */}
+                  <input
+                    type="file"
+                    id="import-file-mobile"
+                    className="hidden"
+                    accept=".json"
+                    onChange={importData}
+                  />
+                </div>
+              </motion.div>
             </div>
 
-            <div className="mt-6">
+            {/* Tabs section */}
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                show: { opacity: 1, y: 0 }
+              }}
+              className="mt-2"
+            >
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full max-w-md grid-cols-2">
                   <TabsTrigger value="formatters">
@@ -800,8 +897,8 @@ const TemplatesConfig: React.FC = () => {
                   </TabsContent>
                 </div>
               </Tabs>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Formatter Edit Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

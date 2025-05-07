@@ -189,7 +189,7 @@ export function Sidebar() {
             isActive={activeItem === 'dashboard' || location.pathname.startsWith('/dashboard')}
             onClick={() => handleItemClick('dashboard')}
             collapsed={isSidebarCollapsed}
-            shortcut="Alt+D"
+            shortcut=""
           />
           
           {/* Templates Link */}
@@ -200,7 +200,7 @@ export function Sidebar() {
             isActive={activeItem === 'templates' || location.pathname.startsWith('/templates')}
             onClick={() => handleItemClick('templates')}
             collapsed={isSidebarCollapsed}
-            shortcut="Alt+T"
+            shortcut=""
           />
           
           {/* Additional item template for future expansion */}
@@ -240,31 +240,34 @@ export function Sidebar() {
           !isSidebarCollapsed && "px-1",
           activeItem === 'settings' && "bg-accent text-accent-foreground"
         )}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={cn(
-                "flex items-center", 
-                isSidebarCollapsed ? "justify-center p-3 w-full" : "p-3 px-3 w-full"
-              )}>
-                <Settings className="h-5 w-5" />
-                
-                {!isSidebarCollapsed && (
-                  <motion.span 
-                    initial={{ opacity: 0, width: 0 }} 
-                    animate={{ opacity: 1, width: "auto" }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="ml-3 text-sm font-medium"
-                  >
-                    Settings
-                  </motion.span>
-                )}
-                
-                <SettingsDrawer />
-              </div>
-            </TooltipTrigger>
-            {isSidebarCollapsed && <TooltipContent side="right">Settings</TooltipContent>}
-          </Tooltip>
+          <Dialog>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <div className={cn(
+                    "flex items-center cursor-pointer", 
+                    isSidebarCollapsed ? "justify-center  w-full" : "p-3 px-3 w-full"
+                  )}>
+                    <Settings className="h-5 w-5" />
+                    
+                    {!isSidebarCollapsed && (
+                      <motion.span 
+                        initial={{ opacity: 0, width: 0 }} 
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="ml-3 text-sm font-medium"
+                      >
+                        Settings
+                      </motion.span>
+                    )}
+                  </div>
+                </DialogTrigger>
+              </TooltipTrigger>
+              {isSidebarCollapsed && <TooltipContent side="right">Settings</TooltipContent>}
+            </Tooltip>
+            <SettingsDrawer />
+          </Dialog>
         </div>
       </div>
       
