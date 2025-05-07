@@ -605,14 +605,30 @@ const Index = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <div className="flex justify-center mb-12">
-              <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                <TabsTrigger value="editor">Editor</TabsTrigger>
-                <TabsTrigger value="versions">Versions</TabsTrigger>
-                <TabsTrigger value="execution">Execution</TabsTrigger>
-                <TabsTrigger value="templates">Templates</TabsTrigger>
-              </TabsList>
+            <div className="relative flex justify-center mb-12">
+              {/* Tab container with horizontal scroll and visual indicators - removed max-width constraint for desktop */}
+              <div className="relative w-full md:w-auto">
+                {/* Left shadow gradient indicator */}
+                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none md:hidden"></div>
+                
+                {/* Scrollable tabs container */}
+                <div className="overflow-x-auto no-scrollbar">
+                  <TabsList className="inline-flex w-max px-0 md:p-0 md:w-auto">
+                    {Object.keys(screenshotsData).map((key) => (
+                      <TabsTrigger 
+                        key={key}
+                        value={key} 
+                        className="px-3 py-2 md:px-5 min-w-[100px] whitespace-nowrap transition-all data-[state=active]:text-primary-foreground data-[state=active]:bg-primary"
+                      >
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+                
+                {/* Right shadow gradient indicator */}
+                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none md:hidden"></div>
+              </div>
             </div>
             
             <div className="max-w-6xl mx-auto">
