@@ -7,7 +7,7 @@
   <p>Craft the perfect AI prompts with visual editing, version control, and more!</p>
 </div>
 
-<img width="800" alt="Editor screenshot" src="https://github.com/user-attachments/assets/389cb933-f533-427f-85c6-2eda1bde294d" />
+<img width="800" alt="editor_page_with_prompt_entered_" src="https://github.com/user-attachments/assets/730a3f22-9444-4488-a8e0-e85daaaf8d68" />
 
   <p><em>The AI-powered prompt editor for crafting perfect system prompts</em></p>
   
