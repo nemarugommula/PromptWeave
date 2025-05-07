@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -486,224 +487,318 @@ const TemplatesConfig: React.FC = () => {
     ? 'container mx-auto p-2 max-w-7xl' 
     : 'container mx-auto p-4 max-w-7xl';
 
+  // Search state
+  const [formatterSearchQuery, setFormatterSearchQuery] = useState('');
+  const [snippetSearchQuery, setSnippetSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
+  // Filtered formatters based on search
+  const filteredFormatters = formatters.filter(formatter => 
+    formatter.label.toLowerCase().includes(formatterSearchQuery.toLowerCase()) ||
+    formatter.type.toLowerCase().includes(formatterSearchQuery.toLowerCase()) ||
+    formatter.template.toLowerCase().includes(formatterSearchQuery.toLowerCase())
+  );
+
+  // Filtered snippets based on search and category filter
+  const filteredSnippets = snippets.filter(snippet => 
+    (categoryFilter === 'all' || snippet.category === categoryFilter) &&
+    (snippet.title.toLowerCase().includes(snippetSearchQuery.toLowerCase()) ||
+     (snippet.description || '').toLowerCase().includes(snippetSearchQuery.toLowerCase()) ||
+     snippet.content.toLowerCase().includes(snippetSearchQuery.toLowerCase()))
+  );
+
+  // Add new category when editing a snippet
+  const [newCategory, setNewCategory] = useState('');
+  
+  const handleCategoryChange = (value: string) => {
+    if (value === 'new') {
+      // Show field to input new category
+      setSnippetCategory(''); // Clear for new input
+    } else {
+      setSnippetCategory(value);
+    }
+  };
+
   return (
-    <div className="h-full flex w-full"> 
+    <div className="flex h-screen w-full overflow-hidden"> 
       {/* Left side nav - Sidebar */}
-      <div className="h-full flex-shrink-0">
+      <div className="h-screen flex-shrink-0">
         <Sidebar />
       </div>
       
-      {/* Main content */}
-      <div className="flex-grow h-full overflow-y-auto">
+      {/* Main content - only this should scroll */}
+      <div className="flex-grow h-screen overflow-y-auto">
         <div className={containerClass}>
-          <div className="flex flex-col gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">Template Configuration</h1>
-              <p className="text-muted-foreground">
-                Configure formatting options and prompt snippets that appear in the editor sidebar.
-              </p>
+          {/* Enhanced header with better styling and information */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Template Configuration</h1>
+                <p className="text-muted-foreground mt-1">
+                  Customize formatting options and prompt snippets for the editor sidebar.
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => activeTab === 'formatters' ? openFormatterEditDialog() : openSnippetEditDialog()}
+                  className="gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add {activeTab === 'formatters' ? 'Formatter' : 'Snippet'}</span>
+                </Button>
+                <Button variant="outline" onClick={exportData} className="gap-1">
+                  <DownloadCloud className="h-4 w-4" />
+                  <span>Export</span>
+                </Button>
+                
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="import-file"
+                    className="absolute inset-0 opacity-0 w-full cursor-pointer"
+                    accept=".json"
+                    onChange={importData}
+                  />
+                  <Button variant="outline" className="gap-1">
+                    <UploadCloud className="h-4 w-4" />
+                    <span>Import</span>
+                  </Button>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={activeTab === 'formatters' ? resetFormattersToDefault : resetSnippetsToDefault}
+                  className="gap-1"
+                >
+                  <span>Reset</span>
+                </Button>
+              </div>
             </div>
 
-            <div className="flex justify-between">
+            <div className="mt-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList>
-                  <TabsTrigger value="formatters">Formatters</TabsTrigger>
-                  <TabsTrigger value="snippets">Prompt Snippets</TabsTrigger>
+                <TabsList className="grid w-full max-w-md grid-cols-2">
+                  <TabsTrigger value="formatters">
+                    <FileCode className="h-4 w-4 mr-2" />
+                    Formatters
+                  </TabsTrigger>
+                  <TabsTrigger value="snippets">
+                    <FileJson className="h-4 w-4 mr-2" />
+                    Prompt Snippets
+                  </TabsTrigger>
                 </TabsList>
                 
-                <div className="flex justify-between mt-4 mb-2">
-                  <div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => activeTab === 'formatters' ? openFormatterEditDialog() : openSnippetEditDialog()}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add {activeTab === 'formatters' ? 'Formatter' : 'Snippet'}
-                    </Button>
-                  </div>
+                <div className="mt-6">
+                  {/* Removing the duplicate actions section here */}
 
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={exportData}>
-                      <DownloadCloud className="h-4 w-4 mr-2" />
-                      Export
-                    </Button>
+                  <TabsContent value="formatters" className="mt-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Format Options</CardTitle>
+                        <CardDescription>
+                          These formatters appear in the Tools & Snippets sidebar when editing prompts.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {formatters.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center p-8 text-center">
+                            <FileCode className="h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-semibold">No formatters found</h3>
+                            <p className="text-muted-foreground mt-2 mb-4">
+                              Add your first formatter to customize your editing experience.
+                            </p>
+                            <Button onClick={() => openFormatterEditDialog()}>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Formatter
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="flex items-center">
+                              <Search className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <Input 
+                                placeholder="Search formatters..." 
+                                className="max-w-sm"
+                                onChange={(e) => setFormatterSearchQuery(e.target.value)}
+                              />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {filteredFormatters.map((formatter) => (
+                                <Card key={formatter.id} className="relative group">
+                                  <CardHeader className="pb-2">
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex items-center space-x-2">
+                                        <div className="p-1.5 bg-muted rounded-md">
+                                          {formatter.icon}
+                                        </div>
+                                        <CardTitle className="text-base">{formatter.label}</CardTitle>
+                                      </div>
+                                      <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openFormatterEditDialog(formatter)}>
+                                          <Edit className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteFormatter(formatter.id)}>
+                                          <Trash className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    {formatter.shortcut && (
+                                      <div className="mt-1 inline-flex">
+                                        <Badge variant="secondary" className="font-mono text-xs">
+                                          {formatter.shortcut}
+                                        </Badge>
+                                      </div>
+                                    )}
+                                  </CardHeader>
+                                  <CardContent>
+                                    <div className="bg-muted p-2 rounded-md font-mono text-xs overflow-x-auto">
+                                      {formatter.template.replace(/\n/g, '⏎\n')}
+                                    </div>
+                                  </CardContent>
+                                  <CardFooter className="pt-0 pb-2">
+                                    <p className="text-xs text-muted-foreground">Type: {formatter.type}</p>
+                                  </CardFooter>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                      <CardFooter className="flex justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            {formatters.length} formatter{formatters.length !== 1 ? 's' : ''} configured
+                          </p>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  </TabsContent>
 
-                    <div className="relative">
-                      <input
-                        type="file"
-                        id="import-file"
-                        className="absolute inset-0 opacity-0 w-full cursor-pointer"
-                        accept=".json"
-                        onChange={importData}
-                      />
-                      <Button variant="outline">
-                        <UploadCloud className="h-4 w-4 mr-2" />
-                        Import
-                      </Button>
-                    </div>
-                    
-                    <Button 
-                      variant="destructive" 
-                      onClick={activeTab === 'formatters' ? resetFormattersToDefault : resetSnippetsToDefault}
-                    >
-                      Reset to Default
-                    </Button>
-                  </div>
+                  <TabsContent value="snippets" className="mt-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Prompt Snippets</CardTitle>
+                        <CardDescription>
+                          These snippets appear in the Tools & Snippets sidebar when editing prompts.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {snippets.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center p-8 text-center">
+                            <FileJson className="h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-semibold">No snippets found</h3>
+                            <p className="text-muted-foreground mt-2 mb-4">
+                              Add your first snippet to enhance your prompt building process.
+                            </p>
+                            <Button onClick={() => openSnippetEditDialog()}>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Snippet
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2 max-w-sm flex-grow">
+                                <Search className="h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  placeholder="Search snippets..." 
+                                  className="w-full"
+                                  onChange={(e) => setSnippetSearchQuery(e.target.value)}
+                                />
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Label htmlFor="category-filter" className="mr-2 whitespace-nowrap">Filter by:</Label>
+                                <Select 
+                                  value={categoryFilter}
+                                  onValueChange={setCategoryFilter}
+                                >
+                                  <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="All Categories" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Categories</SelectItem>
+                                    {categories.map(category => (
+                                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            {/* Group snippets by category */}
+                            {categories.map(category => {
+                              const categorySnippets = filteredSnippets.filter(s => s.category === category);
+                              if (categorySnippets.length === 0) return null;
+                              
+                              return (
+                                <div key={category} className="space-y-4">
+                                  <h3 className="font-medium text-lg flex items-center">
+                                    <Tag className="h-4 w-4 mr-2 text-muted-foreground" />
+                                    {category}
+                                    <Badge variant="secondary" className="ml-2">{categorySnippets.length}</Badge>
+                                  </h3>
+                                  
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {categorySnippets.map(snippet => (
+                                      <Card key={snippet.id} className="relative group">
+                                        <CardHeader className="pb-2">
+                                          <div className="flex justify-between items-start">
+                                            <CardTitle className="text-base">{snippet.title}</CardTitle>
+                                            <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                              <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="h-8 w-8"
+                                                onClick={() => {
+                                                  navigator.clipboard.writeText(snippet.content);
+                                                  toast({
+                                                    title: 'Copied',
+                                                    description: 'Snippet content copied to clipboard.',
+                                                  });
+                                                }}
+                                              >
+                                                <Copy className="h-3.5 w-3.5" />
+                                              </Button>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openSnippetEditDialog(snippet)}>
+                                                <Edit className="h-3.5 w-3.5" />
+                                              </Button>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteSnippet(snippet.id)}>
+                                                <Trash className="h-3.5 w-3.5" />
+                                              </Button>
+                                            </div>
+                                          </div>
+                                          {snippet.description && (
+                                            <CardDescription>{snippet.description}</CardDescription>
+                                          )}
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="bg-muted p-2 rounded-md font-mono text-xs max-h-32 overflow-y-auto">
+                                            {snippet.content.split('\n').map((line, i) => (
+                                              <div key={i} className="whitespace-pre-wrap">{line}</div>
+                                            ))}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                      <CardFooter className="flex justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            {snippets.length} snippet{snippets.length !== 1 ? 's' : ''} across {categories.length} categories
+                          </p>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  </TabsContent>
                 </div>
-
-                <TabsContent value="formatters" className="mt-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Format Options</CardTitle>
-                      <CardDescription>
-                        These formatters appear in the Tools & Snippets sidebar when editing prompts.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="max-h-[60vh] overflow-y-auto">
-                        <Table>
-                          <TableHeader className="sticky top-0 bg-background z-10">
-                            <TableRow>
-                              <TableHead className="w-12">Icon</TableHead>
-                              <TableHead>Label</TableHead>
-                              <TableHead>Type</TableHead>
-                              <TableHead>Shortcut</TableHead>
-                              <TableHead>Template</TableHead>
-                              <TableHead className="w-28">Order</TableHead>
-                              <TableHead className="text-right w-28">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {formatters.map((formatter, index) => (
-                              <TableRow key={formatter.id}>
-                                <TableCell>{getIconForType(formatter.type)}</TableCell>
-                                <TableCell className="font-medium">{formatter.label}</TableCell>
-                                <TableCell>{formatter.type}</TableCell>
-                                <TableCell>{formatter.shortcut || '—'}</TableCell>
-                                <TableCell className="font-mono text-xs">
-                                  {formatter.template.length > 20 
-                                    ? `${formatter.template.substring(0, 20)}...` 
-                                    : formatter.template}
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex items-center justify-center gap-1">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => moveFormatter(formatter.id, 'up')}
-                                      disabled={index === 0}
-                                    >
-                                      <ChevronUp className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      onClick={() => moveFormatter(formatter.id, 'down')}
-                                      disabled={index === formatters.length - 1}
-                                    >
-                                      <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => openFormatterEditDialog(formatter)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => deleteFormatter(formatter.id)}
-                                    >
-                                      <Trash className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="snippets" className="mt-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Prompt Snippets</CardTitle>
-                      <CardDescription>
-                        These snippets appear in the Tools & Snippets sidebar when editing prompts.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="max-h-[60vh] overflow-y-auto">
-                        <Table>
-                          <TableHeader className="sticky top-0 bg-background z-10">
-                            <TableRow>
-                              <TableHead>Category</TableHead>
-                              <TableHead>Title</TableHead>
-                              <TableHead>Description</TableHead>
-                              <TableHead>Preview</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {snippets.map((snippet) => (
-                              <TableRow key={snippet.id}>
-                                <TableCell>{snippet.category}</TableCell>
-                                <TableCell className="font-medium">{snippet.title}</TableCell>
-                                <TableCell>{snippet.description || '—'}</TableCell>
-                                <TableCell>
-                                  <span className="font-mono text-xs">
-                                    {snippet.content.length > 40
-                                      ? `${snippet.content.substring(0, 40).replace(/\n/g, '⏎')}...`
-                                      : snippet.content.replace(/\n/g, '⏎')}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-1">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(snippet.content);
-                                        toast({
-                                          title: 'Copied',
-                                          description: 'Snippet content copied to clipboard.',
-                                        });
-                                      }}
-                                    >
-                                      <Copy className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => openSnippetEditDialog(snippet)}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => deleteSnippet(snippet.id)}
-                                    >
-                                      <Trash className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
               </Tabs>
             </div>
           </div>
@@ -786,7 +881,7 @@ const TemplatesConfig: React.FC = () => {
                   <div className="col-span-3">
                     <Select 
                       value={snippetCategory}
-                      onValueChange={setSnippetCategory}
+                      onValueChange={handleCategoryChange}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
@@ -798,12 +893,12 @@ const TemplatesConfig: React.FC = () => {
                         <SelectItem value="new">+ Add New Category</SelectItem>
                       </SelectContent>
                     </Select>
-                    {snippetCategory === 'new' && (
+                    {snippetCategory === '' && (
                       <Input
                         className="mt-2"
                         placeholder="New category name"
-                        value={snippetCategory === 'new' ? '' : snippetCategory}
-                        onChange={(e) => setSnippetCategory(e.target.value)}
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
                       />
                     )}
                   </div>
