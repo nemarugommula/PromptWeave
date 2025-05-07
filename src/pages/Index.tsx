@@ -435,28 +435,44 @@ const Index = () => {
               <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-400 text-transparent bg-clip-text">
                 PromptWeave
               </span>
+              <motion.a 
+                  href="https://github.com/nemarugommula/PromptWeave" 
+                  target="_blank" 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="inline-flex items-center rounded-full border px-2.5 ml-2 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
+                >
+                  <Sparkles className="mr-1 h-3 w-3" /> Open-source prompt engineering tool
+                </motion.a>
             </motion.div>
-            
-            <motion.h1 
-              variants={fadeInUp} 
-              className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight"
-            >
-              <span className="bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-400 text-transparent bg-clip-text">
-                Craft Perfect AI Prompts
-              </span>
-            </motion.h1>
-            
-            <motion.p 
-              variants={fadeInUp} 
-              className="text-xl md:text-2xl text-muted-foreground max-w-xl leading-relaxed"
-            >
-              The AI-powered prompt editor for engineers who care about precision, version control, and results.
-            </motion.p>
+
+      
+
+            <div className="space-y-2">
+                <motion.h1 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight"
+                >
+                  Craft Perfect <span className="bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-400 text-transparent bg-clip-text">AI Prompts</span> with Precision
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="max-w-[600px] text-lg md:text-xl text-muted-foreground"
+                >
+                  An advanced editor for AI practitioners with version control, visual analysis, and intelligent tools for building robust system prompts.
+                </motion.p>
+              </div>
+              
             
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 pt-6">
               <Button size="lg" asChild className="gap-2 group text-base h-12">
                 <Link to="/dashboard">
-                  Get Started <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                Launch App <Rocket className="h-4 w-4" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="gap-2 text-base h-12">
@@ -586,33 +602,6 @@ const Index = () => {
           />
         </div>
       </div> */}
-
-      {/* GitHub Info */}
-      <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
-          <motion.a 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-            href="https://github.com/nemarugommula/PromptWeave" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group glass-morphism backdrop-blur-md bg-card/50 border border-muted px-6 py-3 rounded-full flex items-center justify-center mx-auto gap-3 transition-all hover:shadow-lg hover:border-primary/30 w-fit"
-          >
-            <div className="w-6 h-6">
-              <BrandLogo />
-            </div>
-            <span>
-              <span className="text-muted-foreground">100% Open Source on </span>
-              <span className="font-medium text-primary group-hover:underline">GitHub</span>
-            </span>
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-500 stroke-yellow-500" />
-              <span className="text-sm font-medium">Star</span>
-            </div>
-          </motion.a>
-        </div>
-      </div>
 
       {/* Interactive Feature Showcase */}
       <div className="container mx-auto px-4 py-16 md:py-24">
