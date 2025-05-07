@@ -435,16 +435,6 @@ const Index = () => {
               <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-indigo-400 text-transparent bg-clip-text">
                 PromptWeave
               </span>
-              <motion.a 
-                  href="https://github.com/nemarugommula/PromptWeave" 
-                  target="_blank" 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="inline-flex items-center rounded-full border px-2.5 ml-2 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
-                >
-                  <Sparkles className="mr-1 h-3 w-3" /> Open-source prompt engineering tool
-                </motion.a>
             </motion.div>
 
       
@@ -477,7 +467,7 @@ const Index = () => {
               </Button>
               <Button size="lg" variant="outline" asChild className="gap-2 text-base h-12">
                 <a
-                  href="https://github.com/prompt-weave/docs"
+                  href="https://github.com/nemarugommula/PromptWeave/blob/main/README.md"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -581,27 +571,6 @@ const Index = () => {
           </motion.div>
         </div>
       </motion.div>
-
-      {/* Statistics Section */}
-      {/* <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <Statistic 
-            value="10,000+" 
-            label="Active Engineers" 
-            icon={<Users className="h-6 w-6" />} 
-          />
-          <Statistic 
-            value="500K+" 
-            label="Prompts Created" 
-            icon={<FileText className="h-6 w-6" />} 
-          />
-          <Statistic 
-            value="100%" 
-            label="Client-side Processing" 
-            icon={<CloudCog className="h-6 w-6" />} 
-          />
-        </div>
-      </div> */}
 
       {/* Interactive Feature Showcase */}
       <div className="container mx-auto px-4 py-16 md:py-24">
