@@ -489,8 +489,8 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
       )}
       aria-label={collapsed ? "Expand utilities panel" : "Collapse utilities panel"}
     >
-      {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
-    </motion.button>
+      {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </motion.button>
   );
 
   // Render collapsed sidebar with improved UX
@@ -621,19 +621,8 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
       >
         <div className="flex items-center justify-between border-b sticky top-0 bg-background z-10">
           <div className="flex items-center gap-2 p-2 group">
-            <motion.div
-              initial={{ rotate: 0 }}
-              animate={{ rotate: 360 }}
-              transition={{ 
-                duration: 4, 
-                repeat: Infinity, 
-                ease: "linear",
-                repeatDelay: 10
-              }}
-              className="group-hover:text-primary transition-colors"
-            >
-              <FileCode className="h-4 w-4 text-primary" />
-            </motion.div>
+          <FileCode className="h-4 w-4 text-primary" />
+
             <h3 className="text-sm font-semibold">Document Analysis</h3>
           </div>
         </div>

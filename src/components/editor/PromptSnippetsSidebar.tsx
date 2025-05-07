@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sparkles, PanelLeft, PanelRight, Pencil, Puzzle, ChevronRight, Filter } from 'lucide-react';
+import { Sparkles, PanelLeft, PanelRight, Pencil, Puzzle, ChevronRight, Filter, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem
 } from '@/components/ui/dropdown-menu';
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from '@/components/ui/tabs';
 
 // Import all hooks from the barrel file
 import {
@@ -52,7 +58,7 @@ const PromptSnippetsSidebar: React.FC<PromptSnippetsSidebarProps> = ({
     categorizedSnippets 
   } = useSearchSnippets(snippets);
 
-  const [showFormattersOnly, setShowFormattersOnly] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("snippets");
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'alphabetical' | 'category'>('category');
 
@@ -84,14 +90,14 @@ const PromptSnippetsSidebar: React.FC<PromptSnippetsSidebarProps> = ({
       whileTap={{ scale: 0.95 }}
       onClick={toggleCollapsed}
       className={cn(
-        "fixed top-20 z-10 flex items-center justify-center",
+        "fixed top-40 z-10 flex items-center justify-center",
         "h-8 w-8 rounded-r-md bg-primary text-primary-foreground shadow-md",
         "border-y border-r border-primary-foreground/20",
         collapsed ? "left-0" : "left-[255px] transform -translate-x-1"
       )}
       aria-label={collapsed ? "Expand snippets panel" : "Collapse snippets panel"}
     >
-      {collapsed ? <PanelRight className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+      {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
     </motion.button>
   );
 
@@ -137,120 +143,108 @@ const PromptSnippetsSidebar: React.FC<PromptSnippetsSidebarProps> = ({
             <h3 className="text-sm font-medium">Prompt Tools</h3>
           </div>
         </div>
-
-        {/* Enhanced search with keyboard shortcut indicator */}
-        <SearchBar 
-          value={searchQuery} 
-          onChange={(e) => setSearchQuery(e.target.value)} 
-          onClear={clearSearch}
-          inputRef={searchInputRef}
-        />
         
         <div className="flex-grow flex flex-col overflow-hidden">
-          {/* Enhanced tabs with animated highlight indicator */}
-          <div className="border-b">
-            <div className="flex w-full relative">
-              <div 
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium cursor-pointer transition-all relative flex items-center justify-center gap-1 z-10",
-                  showFormattersOnly 
-                    ? "text-foreground" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                )}
-                onClick={() => setShowFormattersOnly(true)}
-              >
-                <Pencil className="h-3.5 w-3.5 flex-shrink-0" />
-                <span className="truncate">Formatters</span>
-              </div>
-              <div 
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium cursor-pointer transition-all relative flex items-center justify-center gap-1 z-10",
-                  !showFormattersOnly 
-                    ? "text-foreground" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                )}
-                onClick={() => setShowFormattersOnly(false)}
-              >
-                <Puzzle className="h-3.5 w-3.5 flex-shrink-0" />
-                <span className="truncate">Snippets</span>
-              </div>
-              
-              {/* Animated active tab indicator */}
-              <motion.div 
-                className="absolute bottom-0 h-0.5 bg-primary"
-                initial={false}
-                animate={{ 
-                  left: showFormattersOnly ? "0%" : "50%",
-                  right: showFormattersOnly ? "50%" : "0%"
-                }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              />
+          {/* Enhanced tabs with proper shadcn/ui components */}
+          <Tabs 
+            defaultValue="snippets" 
+            value={activeTab} 
+            onValueChange={setActiveTab} 
+            className="w-full"
+          >
+            <div className="px-1 py-1 border-b">
+              <TabsList className="grid grid-cols-2 w-full h-9 bg-muted/40">
+                <TabsTrigger 
+                  value="formatters" 
+                  className="flex items-center justify-center gap-1.5 data-[state=active]:bg-background rounded-md"
+                >
+                  <Pencil className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="text-xs font-medium">Formatters</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="snippets" 
+                  className="flex items-center justify-center gap-1.5 data-[state=active]:bg-background rounded-md"
+                >
+                  <Puzzle className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="text-xs font-medium">Snippets</span>
+                </TabsTrigger>
+              </TabsList>
             </div>
-          </div>
 
-          {/* Additional controls for snippet panel */}
-          {!showFormattersOnly && (
-            <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/40">
-              <span className="text-xs font-medium text-muted-foreground">
-                {Object.values(categorizedSnippets).flat().length} snippets
-              </span>
-              
-              <div className="flex items-center gap-1">
-                {/* Filter dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <Filter className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem 
-                      className="text-xs"
-                      onClick={() => setActiveFilter(null)}
-                    >
-                      All Categories
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {categories.map(category => (
-                      <DropdownMenuCheckboxItem
-                        key={category}
-                        checked={activeFilter === category}
-                        onCheckedChange={() => setActiveFilter(activeFilter === category ? null : category)}
-                        className="text-xs"
-                      >
-                        {category}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="text-xs"
-                      onClick={() => setSortBy('recent')}
-                    >
-                      Sort by Recent
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="text-xs"
-                      onClick={() => setSortBy('alphabetical')}
-                    >
-                      Sort Alphabetically
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="text-xs"
-                      onClick={() => setSortBy('category')}
-                    >
-                      Group by Category
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+            {/* Additional controls for snippet panel */}
+            {activeTab === "snippets" && (
+              <div className="flex flex-col border-b bg-muted/40">
+                <SearchBar 
+                  value={searchQuery} 
+                  onChange={(e) => setSearchQuery(e.target.value)} 
+                  onClear={clearSearch}
+                  inputRef={searchInputRef}
+                />
+                
+                <div className="flex items-center justify-between px-3 py-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {Object.values(categorizedSnippets).flat().length} snippets
+                  </span>
+                  
+                  <div className="flex items-center gap-1">
+                    {/* Filter dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <Filter className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem 
+                          className="text-xs"
+                          onClick={() => setActiveFilter(null)}
+                        >
+                          All Categories
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {categories.map(category => (
+                          <DropdownMenuCheckboxItem
+                            key={category}
+                            checked={activeFilter === category}
+                            onCheckedChange={() => setActiveFilter(activeFilter === category ? null : category)}
+                            className="text-xs"
+                          >
+                            {category}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-xs"
+                          onClick={() => setSortBy('recent')}
+                        >
+                          Sort by Recent
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-xs"
+                          onClick={() => setSortBy('alphabetical')}
+                        >
+                          Sort Alphabetically
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-xs"
+                          onClick={() => setSortBy('category')}
+                        >
+                          Group by Category
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <ScrollArea className="flex-1">
-            <AnimatePresence mode="wait">
-              {showFormattersOnly ? (
+            {/* Tab content with improved transitions */}
+            <ScrollArea className="flex-1">
+              <TabsContent 
+                value="formatters" 
+                className="p-0 m-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              >
                 <motion.div
-                  key="formatters"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -261,9 +255,12 @@ const PromptSnippetsSidebar: React.FC<PromptSnippetsSidebarProps> = ({
                     handleFormatClick={handleFormatClick}
                   />
                 </motion.div>
-              ) : (
+              </TabsContent>
+              <TabsContent 
+                value="snippets" 
+                className="p-0 m-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              >
                 <motion.div
-                  key="snippets"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -282,9 +279,9 @@ const PromptSnippetsSidebar: React.FC<PromptSnippetsSidebarProps> = ({
                     sortBy={sortBy}
                   />
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </ScrollArea>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
         </div>
       </motion.aside>
     </>

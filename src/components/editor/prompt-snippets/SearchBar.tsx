@@ -25,21 +25,21 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       "flex items-center py-2 px-3 border-b bg-muted/10",
       className
     )}>
-      <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search snippets..."
-          className={cn(
-            "h-8 w-full rounded-md border bg-background py-2 pl-8 pr-12",
-            "text-xs ring-offset-background placeholder:text-muted-foreground",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-            "transition-colors duration-200"
-          )}
-          value={value}
-          onChange={onChange}
-        />
+<div className="relative flex-1 min-w-0">
+
+  <input
+    ref={inputRef}
+    type="text"
+    placeholder="Search snippets..."
+    className={cn(
+      "h-8 w-full rounded-md border bg-background py-2 pl-8 pr-12",
+      "text-xs ring-offset-background placeholder:text-muted-foreground",
+      "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+      "transition-colors duration-200"
+    )}
+    value={value}
+    onChange={onChange}
+  />
 
         {/* Keyboard shortcut indicator */}
         <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
