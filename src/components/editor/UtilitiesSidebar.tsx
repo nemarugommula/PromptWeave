@@ -21,6 +21,11 @@ import {
   FileSymlink,
   ChevronDownSquare,
   ChevronRightSquare,
+  PanelLeft,
+  PanelRight,
+  FileIcon,
+  TextIcon,
+  FileCode,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -312,6 +317,35 @@ const OutlineNode: React.FC<OutlineNodeProps> = ({ heading, onNavigate, currentP
   );
 };
 
+// Collapsed sidebar metric item
+interface CollapsedMetricItemProps {
+  icon: React.ReactNode;
+  value: string | number;
+  label: string;
+  className?: string;
+}
+
+const CollapsedMetricItem: React.FC<CollapsedMetricItemProps> = ({ 
+  icon, value, label, className 
+}) => {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className={cn(
+          "flex flex-col items-center justify-center p-1.5 rounded-md cursor-default transition-colors hover:bg-muted/70",
+          className
+        )}>
+          <div className="text-muted-foreground mb-0.5">{icon}</div>
+          <span className="text-xs font-semibold">{value}</span>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="left">
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
 const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({ 
   content, 
   wordCount, 
@@ -401,7 +435,14 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
     'gpt-4o': 8192,
     'gpt-4o-mini': 4096,
     'gpt-4.5-preview': 128000,
+    'gpt-4-turbo': 128000,
+    'gpt-4': 8192,
+    'gpt-3.5-turbo': 4096,
+    'claude-3-opus': 200000,
+    'claude-3-sonnet': 180000,
+    'claude-3-haiku': 160000,
   };
+  
   const modelLimit = MODEL_LIMITS[selectedModel] ?? 0;
   const warningThreshold = modelLimit ? modelLimit * 0.9 : 0;
   const showWarning = modelLimit > 0 && tokenCount >= warningThreshold;
@@ -434,245 +475,386 @@ const UtilitiesSidebar: React.FC<UtilitiesSidebarProps> = ({
   }, [outline, content]);
   const maxSectionTokens = sections.reduce((max, s) => Math.max(max, s.tokenCount), 0);
 
-  return (
-    <aside className="flex flex-col bg-background border-l transition-width duration-300" style={{ width: collapsed ? 32 : 256 }}>
-      <div className="flex items-center justify-between border-b">
-        {!collapsed && <h3 className="text-sm p-2 font-semibold">Outline</h3>}
-        <button onClick={toggleCollapsed} className="p-1" title={collapsed ? 'Expand' : 'Collapse'}>
-          {collapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </button>
-      </div>
-      
-      {/* Top bar (collapsed view only shows version toggle) */}
-      <div className="border-b p-2 flex items-center justify-center">
-        {collapsed ? (
-          <div className="flex flex-col gap-2">
+  // Render the sidebar toggle button
+  const renderSidebarButton = () => (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={toggleCollapsed}
+      className={cn(
+        "fixed top-20 z-10 flex items-center justify-center",
+        "h-8 w-8 rounded-l-md bg-primary text-primary-foreground shadow-md",
+        "border-y border-l border-primary-foreground/20",
+        collapsed ? "right-0" : "right-[255px] transform translate-x-1"
+      )}
+      aria-label={collapsed ? "Expand utilities panel" : "Collapse utilities panel"}
+    >
+      {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
+    </motion.button>
+  );
+
+  // Render collapsed sidebar with improved UX
+  if (collapsed) {
+    return (
+      <>
+        {renderSidebarButton()}
+        <aside className="flex flex-col bg-background border-l transition-all duration-300 w-12 overflow-hidden">
+          <div className="flex flex-col items-center px-1 py-2 gap-2">
+            {/* Token usage bar on top */}
+            {modelLimit > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="w-full py-1 px-1">
+                    <TokenProgressBar percentage={tokenPercentage} compact={true} />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-[200px]">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                      <span>Token usage:</span>
+                      <span className={cn(
+                        tokenPercentage >= 100 ? 'text-red-500 font-semibold' : 
+                        tokenPercentage >= 80 ? 'text-yellow-600' : ''
+                      )}>{tokenPercentage.toFixed(0)}%</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Version history button */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-4 w-4" onClick={handleToggleVersions}>
-                  <History className="h-4 w-4" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-md hover:bg-muted/70"
+                  onClick={handleToggleVersions}
+                >
+                  <div className="relative">
+                    <History className="h-4 w-4" />
+                    <Badge className="absolute -top-1 -right-1 h-3 w-3 p-0 flex items-center justify-center text-[8px] rounded-full bg-primary text-primary-foreground">
+                      {versionCount}
+                    </Badge>
+                  </div>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left">
-                {showVersions ? "Hide Versions" : "Show Versions"}
+                {showVersions ? "Hide Versions" : "Show Versions"} ({versionCount})
               </TooltipContent>
             </Tooltip>
+
+            <Separator className="my-1 w-8" />
+
+            {/* Document metrics */}
+            <motion.div 
+              className="flex flex-col gap-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <CollapsedMetricItem 
+                icon={<FileText className="h-4 w-4" />}
+                value={tokenCount}
+                label={`${tokenCount.toLocaleString()} tokens`}
+                className={tokenPercentage >= 80 ? 'text-yellow-600' : ''}
+              />
+              
+              <CollapsedMetricItem 
+                icon={<AlignJustify className="h-4 w-4" />}
+                value={lineCount}
+                label={`${lineCount.toLocaleString()} lines`}
+              />
+              
+              <CollapsedMetricItem 
+                icon={<AlignLeft className="h-4 w-4" />}
+                value={wordCount}
+                label={`${wordCount.toLocaleString()} words`}
+              />
+              
+              {outline.length > 0 && (
+                <CollapsedMetricItem 
+                  icon={<FileType className="h-4 w-4" />}
+                  value={outline.length}
+                  label={`${outline.length} headings`}
+                />
+              )}
+            </motion.div>
+            
+            <Separator className="my-1 w-8" />
+            
+            {/* Last saved time with tooltip */}
+            {lastSavedTime && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center cursor-default">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[9px] text-muted-foreground mt-0.5">saved</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <div className="flex flex-col gap-1">
+                    <span>Last saved:</span>
+                    <span className="text-xs">{new Date(lastSavedTime).toLocaleString()}</span>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
-        ) : (
+        </aside>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {renderSidebarButton()}
+      <motion.aside 
+        className="flex flex-col bg-background border-l h-full relative"
+        initial={{ width: collapsed ? 48 : 256 }}
+        animate={{ width: 256 }}
+        exit={{ width: 48 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex items-center justify-between border-b sticky top-0 bg-background z-10">
+          <div className="flex items-center gap-2 p-2 group">
+            <motion.div
+              initial={{ rotate: 0 }}
+              animate={{ rotate: 360 }}
+              transition={{ 
+                duration: 4, 
+                repeat: Infinity, 
+                ease: "linear",
+                repeatDelay: 10
+              }}
+              className="group-hover:text-primary transition-colors"
+            >
+              <FileCode className="h-4 w-4 text-primary" />
+            </motion.div>
+            <h3 className="text-sm font-semibold">Document Analysis</h3>
+          </div>
+        </div>
+        
+        {/* Top bar with version history */}
+        <div className="border-b p-2 flex items-center justify-center">
           <div className="w-full flex flex-col gap-1">
             <div className="flex items-center ">
-            <History className="h-4 w-4" />              
-            <span className="text-xs font-medium ml-1">version </span>
-            <Badge className=" ml-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px] bg-primary text-primary-foreground">
-                {versionCount}
-              </Badge>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleToggleVersions}
-                className="h-5 w-5 ml-auto p-0"
-              >
-                {showVersions ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              </Button>
-            </div>
-            {showVersions && (
-              <div className="max-h-40 overflow-y-auto border p-1 rounded ">
-                {children}
+              <History className="h-4 w-4" />              
+              <span className="text-xs font-medium ml-1">version </span>
+              <Badge className=" ml-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px] bg-primary text-primary-foreground">
+                  {versionCount}
+                </Badge>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleToggleVersions}
+                  className="h-5 w-5 ml-auto p-0"
+                >
+                  {showVersions ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
               </div>
-            )}
+              {showVersions && (
+                <motion.div 
+                  className="max-h-40 overflow-y-auto border p-1 rounded"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {children}
+                </motion.div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-      
-      {/* Minimized view: show compact metrics */}
-      {collapsed && (
-        <div className="flex flex-col items-center space-y-2 flex-1 p-2 text-xs">
-          {modelLimit > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="w-full py-1">
-                  <TokenProgressBar percentage={tokenPercentage} compact={true} />
+          
+          {/* Expanded view: detailed breakdown */}
+          <div className="flex-1 overflow-y-auto p-2 space-y-4 text-xs">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <div className="font-medium mb-1.5 flex items-center justify-between text-xs">
+                <div className="flex items-center">
+                  <FileText className="h-3.5 w-3.5 mr-1" />
+                  <span>Prompt Stats</span>
                 </div>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens ({tokenPercentage.toFixed(0)}%)
-              </TooltipContent>
-            </Tooltip>
-          )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-default">🧠</span>
-            </TooltipTrigger>
-            <TooltipContent side="left">Tk: {tokenCount}</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-default">📄</span>
-            </TooltipTrigger>
-            <TooltipContent side="left">Ln: {lineCount}</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-default">📝</span>
-            </TooltipTrigger>
-            <TooltipContent side="left">Wd: {wordCount}</TooltipContent>
-          </Tooltip>
-        </div>
-      )}
-      
-      {/* Expanded view: detailed breakdown */}
-      {!collapsed && (
-        <div className="flex-1 overflow-y-auto p-2 space-y-4 text-xs">
-          <div>
-            <div className="font-medium mb-1.5 flex items-center justify-between text-xs">
-              <div className="flex items-center">
-                <FileText className="h-3.5 w-3.5 mr-1" />
-                <span>Prompt Stats</span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={togglePromptStats}
+                  className="h-5 w-5 p-0"
+                >
+                  {promptStatsExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={togglePromptStats}
-                className="h-5 w-5 p-0"
-              >
-                {promptStatsExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              </Button>
-            </div>
-            
-            {promptStatsExpanded && (
-              <>
-                {/* Prompt Stats Grid */}
-                <div className="grid grid-cols-2 gap-1.5 mb-2">
-                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
-                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
-                      <AlignLeft className="h-2.5 w-2.5 mr-0.5" />
-                      <span>WORDS</span>
+              
+              <AnimatePresence initial={false}>
+                {promptStatsExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {/* Prompt Stats Grid */}
+                    <div className="grid grid-cols-2 gap-1.5 mb-2">
+                      <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                        <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                          <AlignLeft className="h-2.5 w-2.5 mr-0.5" />
+                          <span>WORDS</span>
+                        </div>
+                        <div className="font-mono text-xs">{wordCount.toLocaleString()}</div>
+                      </div>
+                      
+                      <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                        <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                          <BarChart2 className="h-2.5 w-2.5 mr-0.5" />
+                          <span>CHARS</span>
+                        </div>
+                        <div className="font-mono text-xs">{charCount.toLocaleString()}</div>
+                      </div>
+                      
+                      <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                        <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                          <AlignJustify className="h-2.5 w-2.5 mr-0.5" />
+                          <span>LINES</span>
+                        </div>
+                        <div className="font-mono text-xs">{lineCount.toLocaleString()}</div>
+                      </div>
+                      
+                      <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
+                        <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
+                          <Cpu className="h-2.5 w-2.5 mr-0.5" />
+                          <span>TOKENS</span>
+                        </div>
+                        <div className={cn(
+                          "font-mono text-xs",
+                          tokenPercentage >= 100 ? "text-red-500" : 
+                          tokenPercentage >= 80 ? "text-yellow-600" : ""
+                        )}>{tokenCount.toLocaleString()}</div>
+                      </div>
                     </div>
-                    <div className="font-mono text-xs">{wordCount.toLocaleString()}</div>
-                  </div>
-                  
-                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
-                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
-                      <BarChart2 className="h-2.5 w-2.5 mr-0.5" />
-                      <span>CHARS</span>
-                    </div>
-                    <div className="font-mono text-xs">{charCount.toLocaleString()}</div>
-                  </div>
-                  
-                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
-                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
-                      <AlignJustify className="h-2.5 w-2.5 mr-0.5" />
-                      <span>LINES</span>
-                    </div>
-                    <div className="font-mono text-xs">{lineCount.toLocaleString()}</div>
-                  </div>
-                  
-                  <div className="flex flex-col bg-muted/50 p-1.5 rounded-md border border-border/40">
-                    <div className="flex items-center text-[9px] text-muted-foreground mb-0.5">
-                      <Cpu className="h-2.5 w-2.5 mr-0.5" />
-                      <span>TOKENS</span>
+
+                    {/* Token Usage Bar */}
+                    {modelLimit > 0 && (
+                      <>
+                        <TokenProgressBar percentage={tokenPercentage} />
+                        <div className="mt-1 text-xs flex justify-between w-full">
+                          <span className="text-muted-foreground">
+                            {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens
+                          </span>
+                          {tokenPercentage >= 80 && (
+                            <span className={cn(
+                              "text-right",
+                              tokenPercentage >= 100 ? 'text-red-500 font-semibold' : 'text-yellow-600'
+                            )}>
+                              {tokenPercentage >= 100 ? 'Limit reached' : 'Approaching limit'}
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            <motion.div 
+              className='border-b border-t py-2'
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <div className="font-medium mb-2 flex items-center">
+                <FileType className="h-4 w-4 mr-1.5" />
+                <span>Document Outline</span>
+              </div>
+              <OutlineTree 
+                headings={outline} 
+                onNavigate={onNavigate} 
+              />
+            </motion.div>
+
+            <motion.div 
+              className='border-b pb-2'
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
+              <div className="font-medium mb-2 flex items-center">
+                <BarChart className="h-4 w-4 mr-1.5" />
+                <span>Section Stats</span>
+              </div>
+              <div className="overflow-hidden rounded-md border border-border/40 bg-muted/30">
+                {sections.map((sec, idx) => (
+                  <div 
+                    key={idx} 
+                    className={cn(
+                      "px-2 py-1 flex justify-between items-center text-xs hover:bg-muted/70 transition-colors", 
+                      sec.tokenCount === maxSectionTokens ? 'bg-primary/10' : '',
+                      idx !== sections.length - 1 ? "border-b border-border/20" : ""
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5 truncate max-w-[75%]">
+                      <div style={{ marginLeft: Math.max(0, (sec.level - 1) * 4) }} className="flex-shrink-0">
+                        <Hash className={cn(
+                          "h-3 w-3", 
+                          sec.tokenCount === maxSectionTokens ? "text-primary" : "text-muted-foreground"
+                        )} />
+                      </div>
+                      <span className={cn("truncate", sec.tokenCount === maxSectionTokens ? "text-primary font-medium" : "")}>{sec.text}</span>
                     </div>
                     <div className={cn(
-                      "font-mono text-xs",
-                      tokenPercentage >= 100 ? "text-red-500" : 
-                      tokenPercentage >= 80 ? "text-yellow-600" : ""
-                    )}>{tokenCount.toLocaleString()}</div>
+                      "font-mono text-right",
+                      sec.tokenCount === maxSectionTokens ? "text-primary font-medium" : "text-muted-foreground"
+                    )}>{sec.tokenCount}</div>
                   </div>
-                </div>
+                ))}
+              </div>
+            </motion.div>
 
-                {/* Token Usage Bar */}
-                {modelLimit > 0 && (
-                  <>
-                    <TokenProgressBar percentage={tokenPercentage} />
-                    <div className="mt-1 text-xs flex justify-between w-full">
-                      <span className="text-muted-foreground">
-                        {tokenCount.toLocaleString()} / {modelLimit.toLocaleString()} tokens
-                      </span>
-                      {tokenPercentage >= 80 && (
-                        <span className={cn(
-                          "text-right",
-                          tokenPercentage >= 100 ? 'text-red-500 font-semibold' : 'text-yellow-600'
-                        )}>
-                          {tokenPercentage >= 100 ? 'Limit reached' : 'Approaching limit'}
-                        </span>
-                      )}
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-          <div className='border-b border-t py-2'>
-            <div className="font-medium mb-2 flex items-center">
-              <FileType className="h-4 w-4 mr-1.5" />
-              <span>Document Outline</span>
-            </div>
-            <OutlineTree 
-              headings={outline} 
-              onNavigate={onNavigate} 
-            />
-          </div>
-          <div className='border-b pb-2'>
-            <div className="font-medium mb-2 flex items-center">
-              <BarChart className="h-4 w-4 mr-1.5" />
-              <span>Section Stats</span>
-            </div>
-            <div className="overflow-hidden rounded-md border border-border/40 bg-muted/30">
-              {sections.map((sec, idx) => (
-                <div 
-                  key={idx} 
-                  className={cn(
-                    "px-2 py-1 flex justify-between items-center text-xs hover:bg-muted/70 transition-colors", 
-                    sec.tokenCount === maxSectionTokens ? 'bg-primary/10' : '',
-                    idx !== sections.length - 1 ? "border-b border-border/20" : ""
-                  )}
-                >
-                  <div className="flex items-center gap-1.5 truncate max-w-[75%]">
-                    <div style={{ marginLeft: Math.max(0, (sec.level - 1) * 4) }} className="flex-shrink-0">
-                      <Hash className={cn(
-                        "h-3 w-3", 
-                        sec.tokenCount === maxSectionTokens ? "text-primary" : "text-muted-foreground"
-                      )} />
-                    </div>
-                    <span className={cn("truncate", sec.tokenCount === maxSectionTokens ? "text-primary font-medium" : "")}>{sec.text}</span>
-                  </div>
-                  <div className={cn(
-                    "font-mono text-right",
-                    sec.tokenCount === maxSectionTokens ? "text-primary font-medium" : "text-muted-foreground"
-                  )}>{sec.tokenCount}</div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+            >
+              <div className="font-medium mb-2 flex items-center">
+                <Save className="h-4 w-4 mr-1.5" />
+                <span>Last Saved</span>
+              </div>
+              <div className="bg-muted/50 rounded-md border border-border/40 p-2 flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                <div className="text-xs font-medium">
+                  {lastSavedTime ? new Date(lastSavedTime).toLocaleString() : 'N/A'}
                 </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="font-medium mb-2 flex items-center">
-              <Save className="h-4 w-4 mr-1.5" />
-              <span>Last Saved</span>
-            </div>
-            <div className="bg-muted/50 rounded-md border border-border/40 p-2 flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-              <div className="text-xs font-medium">
-                {lastSavedTime ? new Date(lastSavedTime).toLocaleString() : 'N/A'}
               </div>
-            </div>
-          </div>
-          <div>
-            <div className="font-medium mb-2 flex items-center">
-              <Sparkles className="h-4 w-4 mr-1.5" />
-              <span>Suggestions</span>
-              <Badge variant="outline" className="ml-1.5 text-[9px] py-0 h-4">Phase 2</Badge>
-            </div>
-            <div className="bg-muted/30 rounded-md border border-border/40 border-dashed p-2 flex items-center justify-center">
-              <div className="text-muted-foreground text-xs flex items-center gap-1.5">
-                <LampDesk className="h-3.5 w-3.5" />
-                <span>Coming soon...</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
+              <div className="font-medium mb-2 flex items-center">
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                <span>Suggestions</span>
+                <Badge variant="outline" className="ml-1.5 text-[9px] py-0 h-4">Phase 2</Badge>
               </div>
-            </div>
+              <div className="bg-muted/30 rounded-md border border-border/40 border-dashed p-2 flex items-center justify-center">
+                <div className="text-muted-foreground text-xs flex items-center gap-1.5">
+                  <LampDesk className="h-3.5 w-3.5" />
+                  <span>Coming soon...</span>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
-    </aside>
-  );
+        </motion.aside>
+      </>
+    );
 };
 
 export default UtilitiesSidebar;
