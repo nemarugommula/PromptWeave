@@ -1,9 +1,10 @@
-# ✨ PromptWeave
-
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/3012caea-cf30-43fe-bf11-f95a85c98c95" alt="your-svg-image" />
+</p>
 <div align="center">
 
 <div align="center">
-  <h3>⚡ <b>PromptWeave 1.0</b> ⚡</h3>
+  <h3>⚡ ✨ <b>PromptWeave 1.0</b> ⚡</h3>
   <p>Craft the perfect AI prompts with visual editing, version control, and more!</p>
 </div>
 
