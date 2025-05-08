@@ -47,10 +47,6 @@
 - **Rollback Capability:** Restore previous versions when needed
 - **Version Metadata:** Track token counts, edit times, and version descriptions
   
-<div align="center">
-  <img width="650" alt="Dashboard for organization" src="https://github.com/user-attachments/assets/62d1e424-b4a2-4987-b534-bb69d0ae0913" style="border-radius: 6px; border: 1px solid #e1e4e8;" />
-</div>
-
 ### 🗂️ Organization & Management
 - **Categories:** Organize prompts into custom categories
 - **Search & Filter:** Quickly find prompts across your collection
